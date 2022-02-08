@@ -6,7 +6,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 <head>
 	<meta charset="utf-8">
-	<title>Hello World!</title>
+	<title>Hello World!test</title>
 </head>
 
 <body>
