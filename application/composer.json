@@ -1,0 +1,12 @@
+{
+    "name": "dev/codeigniter",
+    "description": "Composer package list and local code autoload support.",
+    "type": "project",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "app\\": "./"
+        }
+    },
+    "require": {}
+}
