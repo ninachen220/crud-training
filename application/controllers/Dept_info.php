@@ -83,7 +83,6 @@ class Dept_info extends CI_Controller
         echo "\n";
 
 
-
         /**
          * ========== 範例-刪除 ==========
          */
@@ -93,7 +92,10 @@ class Dept_info extends CI_Controller
         // $this->Dept_info_model->delete($d_id, true);
 
         // 讀回刪除的資料
-        $data = $this->Dept_info_model->get($d_id);
+        $where = [
+            'd_id' => $d_id
+        ];
+        $data = $this->Dept_info_model->getBy($where);
         echo "刪除後：";
         var_export($data);
         echo "\n";
@@ -106,11 +108,83 @@ class Dept_info extends CI_Controller
          * ========== 範例-取得資料-從查詢條件 ==========
          * 請先新增好一些資料再來查詢
          */
+
         $where = [
             'd_id' => ['31', '32'],
-            'd_level' => '部',
+            'd_level' => '組',
         ];
+
+        //使用Dept_info_model中的getBy讀取陣列中的資料
         $data = $this->Dept_info_model->getBy($where);
         var_export($data);
+        echo "\n";
+        echo "\n";
+
+        /**
+         * ========== 測試 -批次新增 ==========
+         */
+
+        $datas = [
+            array(
+                'd_code' => 'd' . str_pad($count, 4, '0', STR_PAD_LEFT),
+                'd_name' => '部門1',
+                'd_level' => '部',
+                'date_start' => '2022-01-01',
+                'remark' => '部門' . $count
+            ),
+            array(
+                'd_code' => 'd' . str_pad(((int)$count + 1), 4, '0', STR_PAD_LEFT),
+                'd_name' => '部門1',
+                'd_level' => '部',
+                'date_start' => '2022-01-02',
+                'remark' => '部門' . ((int)$count + 1)
+            )
+        ];
+
+        //使用Dept_info_model中的postBatch批次新增
+        $result = $this->Dept_info_model->postBatch($datas);
+
+        //判斷回傳為是否為數字
+        if (is_numeric($result)) {
+            echo "批次新增後:";
+            echo "\n";
+
+            echo "已批次新增" . $result . "筆資料";
+        } else {
+            echo "新增失敗!";
+        }
+
+        echo "\n";
+        echo "\n";
+
+        /**
+         * ========== 測試 -批次新增 ==========
+         */
+
+        $datas = [
+            array(
+                'd_id' => '44',
+                'd_name' => '部門2-1',
+                'd_level' => '組',
+            ),
+            array(
+                'd_id' => '45',
+                'd_name' => '部門2-2',
+                'd_level' => '組',
+            )
+        ];
+
+        //使用Dept_info_model中的putBatch批次修改資料
+        $result = $this->Dept_info_model->putBatch($datas);
+
+        //判斷回傳是否為數字
+        if (is_numeric($result)) {
+            echo "批次修改後:";
+            echo "\n";
+
+            echo "已批次修改" . $result . "筆資料";
+        } else {
+            echo "修改失敗!";
+        }
     }
 }

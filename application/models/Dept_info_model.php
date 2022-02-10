@@ -74,8 +74,7 @@ class Dept_info_model extends CI_Model
     public function getBy($conditions = [], $col = '*')
     {
         // 查詢建構
-        $query = $this->db->select($col)->from($this->table)->where('rec_status', '1');
-
+        $query = $this->db->select($col)->from($this->table)->where('rec_status', '0');
         // 加入查詢條件
         foreach ($conditions as $key => $where) {
             if (is_array($where)) {
@@ -86,7 +85,6 @@ class Dept_info_model extends CI_Model
                 $query->where($key, $where);
             }
         }
-
         // 執行查詢、取回資料並回傳
         return $query->get()->result_array();
     }
@@ -172,7 +170,7 @@ class Dept_info_model extends CI_Model
      */
     public function delete($d_id, $forceDelete = false)
     {
-        // 
+        // $d_id轉為陣列
         $d_id = (array) $d_id;
 
         // 刪除條件
@@ -187,7 +185,7 @@ class Dept_info_model extends CI_Model
             $data['user_delete'] = 0;
             $data['rec_status'] = 0;
 
-            // 
+            // 更新資料
             return $this->db->update($this->table, $data);
         }
     }
@@ -205,15 +203,22 @@ class Dept_info_model extends CI_Model
     {
         foreach ($datas as $key => $data) {
             // 過濾可用欄位資料
-
+            $data = array_intersect_key($data, array_flip($this->tableColumns));
             // 移除主鍵欄位 - 新增時不帶入主鍵值，以便主鍵由sql自行增加
-
+            if (isset($data['d_id'])) {
+                unset($data['d_id']);
+                // 移除 date_update, user_update, date_delete, user_delete
+                unset($data['date_update']);
+                unset($data['user_update']);
+                unset($data['date_delete']);
+                unset($data['user_delete']);
+            }
             // 寫入 date_create, user_create(未知，暫用0), rec_status
 
-            // 移除 date_update, user_update, date_delete, user_delete
-
+            $datas[$key]['date_create'] = date('Y-m-d H:i:s');
+            $datas[$key]['user_create'] = 0;
+            $datas[$key]['rec_status'] = 1;
         }
-
         // 批次寫入資料表 - 成功時回傳插入列數，失敗時回傳 FALSE
         return $this->db->insert_batch($this->table, $datas);
     }
@@ -230,16 +235,22 @@ class Dept_info_model extends CI_Model
     {
         foreach ($datas as $key => $data) {
             // 過濾可用欄位資料
-
+            $data = array_intersect_key($data, array_flip($this->tableColumns));
             // 檢查有無主鍵
-
+            if (isset($data['d_id'])) {
+                // 移除 date_create, user_create, date_delete, user_delete, rec_status
+                unset($data['date_create']);
+                unset($data['user_create']);
+                unset($data['date_delete']);
+                unset($data['user_delete']);
+                unset($data['rec_status']);
+            } 
             // 寫入 date_update, user_update(未知，暫用0)
-
-            // 移除 date_create, user_create, date_delete, user_delete, rec_status
-
+            $data[$key]['date_update'] = date('Y-m-d H:i:s');
+            $data[$key]['user_update'] = 0;
         }
 
         // 批次更新資料 - 成功時回傳更新列數，失敗時回傳 FALSE
-        $this->db->update_batch($this->table, $datas, 'd_id');
+        return $this->db->update_batch($this->table, $datas, 'd_id'); 
     }
 }

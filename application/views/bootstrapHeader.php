@@ -26,7 +26,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 
@@ -37,12 +37,11 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 
 
-    <!-- <script src="/node_modules/popper.js/dist/popper.min.js"></script> -->
-    <script src="/node_modules/popper.js"></script>
-    <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.js"></script>
-    <link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.min.css">
     <script src="/node_modules/jquery/dist/jquery.min.js"></script>
+    <link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.min.css">
     <script src="/node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
 </head>
 
 <body>
