@@ -176,6 +176,7 @@
       /**
  * 讀取全部
  */
+console.log()
       $.ajax({
         method: 'GET',
         url: self._ajaxUrls.accountApi,
