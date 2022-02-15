@@ -2,11 +2,7 @@
 defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
- * 部門資料庫存取範例
- * 
- * 本Controller提供Model Dept_info_model 使用範例，請在觀察輸出時，也同步觀察資料庫中的資料
- * 
- * @author Mars.Hung 2020-02-29
+ * 帳號資料庫存取範例
  */
 class Crud_account extends CI_Controller
 {
@@ -15,6 +11,7 @@ class Crud_account extends CI_Controller
     {
         parent::__construct();
 
+        //建構子時，載入model
         $this->load->model('Crud_account_model');
     }
 
@@ -37,11 +34,11 @@ class Crud_account extends CI_Controller
         switch ($method) {
             case 'POST':
                 // 新增一筆資料
-                $this->post($data);
+                $this->addAccount($data);
                 break;
             case 'GET':
                 if (empty($id)) {
-                    // 
+                    //讀取全部資料
                     $this->getAllAccount();
                 } else {
                     // 讀取一筆資料
@@ -51,7 +48,7 @@ class Crud_account extends CI_Controller
             case 'PATCH':
             case 'PUT':
                 // 更新一筆資料
-                // $this->Crud_account_model->updateAccount($data, $id);
+                $this->editAccount($data);
                 break;
             case 'DELETE':
                 if (empty($id)) {
@@ -71,6 +68,7 @@ class Crud_account extends CI_Controller
      * 獲取所有資料
      *
      * @return json
+     * 
      */
     function getAllAccount()
     {
@@ -93,29 +91,37 @@ class Crud_account extends CI_Controller
      *
      * @return json
      */
-    function post($formData)
+    function addAccount($data)
     {
-        $default = [
-            'accountId' => 'a_account',
-            'accountName' => 'a_name',
-            'accountSex' => 'a_sex',
-            'accountBirth' => 'a_birth',
-            'accountMail' => 'a_mail',
-            'accountNote' => 'a_note'
-        ];
-        $data = [];
-       foreach($formData as $row){
-           foreach($row as $row2){
-            $data[$default[$row2['name']]] = $row2['value'];
-           }
-       }
         // 讀取全部資料
-        $res = $this->Crud_account_model->post($data);
+        $res = $this->Crud_account_model->addAccount($data);
 
         // 建立輸出陣列
         $opt = [
             // 行為：新增一筆
             'type' => '新增一筆',
+            // 前端AJAX傳過來的資料
+            'data' => $res,
+        ];
+
+        // 輸出JSON
+        echo json_encode($opt);
+    }
+
+    /**
+     * 修改帳號
+     *
+     * @return json
+     */
+    function editAccount($data)
+    {
+        // 修改帳號資料
+        $res = $this->Crud_account_model->editAccount($data);
+
+        // 建立輸出陣列
+        $opt = [
+            // 行為：修改一筆
+            'type' => '修改一筆',
             // 前端AJAX傳過來的資料
             'data' => $res,
         ];
