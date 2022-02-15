@@ -92,8 +92,7 @@
     //新增帳號
     var postAccout = function() {
       //從form取得所有填寫的資料
-      var data = $('form').serializeArray();
-
+      var data = $('#addAccountForm').serializeArray();
       //二次確認是否新增帳號
       if (confirm('是否新增帳號?')) {
         //發送新增的資料到controller
@@ -101,10 +100,22 @@
           method: 'POST',
           url: self._ajaxUrls.accountApi,
           dataType: 'json',
-          data: { data },
+          data,
         }).done(function(data) {
+          //顯示回傳的type
+          alert(data.type);
+
+          //將modal欄位內的資料清除
+          $('#addAccount').find('input,textarea').val('');
+          $('#addAccount').find('select').val('N');
+
+          //將table的資料移除
           $('.table tbody').remove();
+
+          //隱藏modal
           $('#addAccount').modal('hide');
+
+          //重新獲取所有資料
           getAllAccount();
         });
       }
@@ -119,8 +130,8 @@
         dataType: 'json',
       }).done(function(data) {
         /**
-           * 陣列資料配合$.each建立表格
-           */
+         * 陣列資料配合$.each建立表格
+         */
         // 建立變數
         var tmp, table, thead, tbody, tr, th, td;
 
@@ -133,26 +144,87 @@
         // 建立內容
         $.each(data.data, function(index1, value1) {
           //建立tr區塊資料
-          tr = $('<tr></tr>').appendTo(tbody);
-          //遍歷data資料後放進td
+          tr = $('<tr data-id="' + value1.a_id + '"></tr>').appendTo(tbody);
+
+          // 遍歷data資料後放進td
           $.each(value1, function(index2, value2) {
-            td = $('<td>' + value2 + '</td>').appendTo(tr);
+            // 不放a_id進table裡顯示
+            if (index2 !== 'a_id') {
+              td = $('<td>' + value2 + '</td>').appendTo(tr);
+            }
           });
+
+          // 修改按鈕
+          td = $(
+            '<td><button type="button" class="btn btn-outline-secondary edit"><i class="bi bi-pencil-fill"></i></button></td>'
+          ).appendTo(tr);
+
+          // 刪除按鈕
+          td = $(
+            '<td><button type="button" class="btn btn-outline-secondary delete"><i class="bi bi-trash3"></i></button></td>'
+          ).appendTo(tr);
         });
 
         // 取得table元件
         table = $('.table');
         // 將暫存容器內容移至table元件
         tmp.children().appendTo(table);
+
+        // 綁定修改按鈕觸發modal
+        $('.edit').on('click', function() {
+          $('#editAccount').modal('show');
+
+          // 指定當前按鈕的tr
+          var trData = $(this).parents('tr');
+
+          // modal內放入tr的data-id(a_id)
+          $('#accountSeq').val(trData.data('id'));
+
+          // 將modal內的欄位id整理成array
+          var arr = [];
+          $('#editAccount').find('input,select,textarea').each(function() {
+            arr.push($(this).attr('id'));
+          });
+
+          // 將放data-id的隱藏欄位移除
+          arr.splice(1, 1);
+
+          // 按照順序將tr內的td資料放入modal的欄位內
+          trData.children('td').each(function() {
+            // td內的資料
+            var dataText = $(this).text();
+
+            // 判斷是否為性別欄位
+            if (arr[0] == 'editAccountSex') {
+              // 修改td的資料與option相符
+              switch (dataText) {
+                case '男生':
+                  $('#' + arr[0]).val('M');
+                  break;
+                case '女生':
+                  $('#' + arr[0]).val('F');
+                  break;
+                default:
+                  $('#' + arr[0]).val('N');
+                  break;
+              }
+            } else {
+              $('#' + arr[0]).val(dataText);
+            }
+
+            // 放完後的欄位從array中移除
+            arr.splice(0, 1);
+          });
+        });
       });
     };
 
-    //刪除帳號
-    var postAccout = function() {
+    // 刪除帳號
+    var deleteAccout = function() {
       var id = $('#hiddenId').val();
-      //二次確認是否刪除帳號
+      // 二次確認是否刪除帳號
       if (confirm('是否刪除帳號?')) {
-        //發送刪除的ID到controller
+        // 發送刪除的ID到controller
         $.ajax({
           method: 'DELETE',
           url: self._ajaxUrls.accountApi,
@@ -168,8 +240,8 @@
     };
 
     //更新帳號
-    var postAccout = function() {
-      var data = $('form').serializeArray();
+    var editAccout = function() {
+      var data = $('#editAccountForm').serializeArray();
       //二次確認是否更新帳號
       if (confirm('是否更新帳號?')) {
         //發送更新的資料到controller
@@ -177,11 +249,18 @@
           method: 'PUT',
           url: self._ajaxUrls.accountApi,
           dataType: 'json',
-          data: { data },
+          data,
         }).done(function(data) {
-          alert(data);
+          // 顯示回傳的type
+          alert(data.type);
+
+          // 移除table的內容
           $('.table tbody').remove();
-          $('#addAccount').modal('hide');
+
+          // 將modal隱藏
+          $('#editAccount').modal('hide');
+
+          // 重新獲取所有資料
           getAllAccount();
         });
       }
@@ -207,9 +286,12 @@
           */
     var _evenBind = function() {
       console.log('_evenBind');
-
       $('#search').on('click', getAllAccount);
       $('.addAccount').on('click', postAccout);
+      $('.editAccount').on('click', editAccout);
+      $('#addAccountModel').on('click', function() {
+        $('#addAccount').modal('show');
+      });
     };
 
     /**
