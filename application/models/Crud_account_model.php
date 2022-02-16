@@ -57,21 +57,11 @@ class Crud_account_model extends CI_Model
     //新增帳號
     public function addAccount($data)
     {
-        //預設前端id對應的欄位名稱
-        $default = [
-            'accountId' => 'a_account',
-            'accountName' => 'a_name',
-            'accountSex' => 'a_sex',
-            'accountBirth' => 'a_birth',
-            'accountMail' => 'a_mail',
-            'accountNote' => 'a_note'
-        ];
-
-        //整理對應資料
-        foreach ($data as $key => $row) {
-            $data[$default[$key]] = $row;
+        try {
+            $this->checkData($data,'add');
+        } catch (\Exception $e) {
+            echo 'Message:' .$e->getMessage();
         }
-
         //設定status = 1
         $data['status'] = 1;
 
@@ -92,22 +82,11 @@ class Crud_account_model extends CI_Model
      */
     public function editAccount($data)
     {
-        //預設前端id對應的欄位名稱
-        $default = [
-            'accountSeq' => 'a_id',
-            'editAccountId' => 'a_account',
-            'editAccountName' => 'a_name',
-            'editAccountSex' => 'a_sex',
-            'editAccountBirth' => 'a_birth',
-            'editAccountMail' => 'a_mail',
-            'editAccountNote' => 'a_note'
-        ];
-
-        //整理對應資料
-        foreach ($data as $key => $row) {
-            $data[$default[$key]] = $row;
+        try {
+            $this->checkData($data,'edit');
+        } catch (\Exception $e) {
+            echo 'Message:' .$e->getMessage();
         }
-
         // 過濾可用欄位資料
         $data = array_intersect_key($data, array_flip($this->tableColumns));
 
@@ -127,5 +106,46 @@ class Crud_account_model extends CI_Model
         }
 
         return $res;
+    }
+
+    function checkData($data,$type)
+    {
+        if($type =='add'){
+            unset($data['a_id']);
+        }
+
+        foreach($data as $key =>$value){
+            if($key =='a_account'){
+                if(!preg_match('/^[A-Za-z0-9]{5,15}$/', $value)){
+                    throw new Exception("帳號限制為5~15個字元");
+                }
+            }else if($key =='a_id'){
+                if($value ==''){
+                    throw new Exception('沒有主鍵欄位: a_id', 400);
+                }
+
+            }else if($key =='a_name'){
+                if($value ==''){
+                    throw new Exception('姓名不能為空');
+                }
+                
+            }else if($key =='a_sex'){
+                if($value ==''){
+                    throw new Exception('請選擇性別');
+                }
+                
+            }else if($key =='a_birth'){
+                if($value ==''){
+                    throw new Exception('請選擇生日');
+                }
+                
+            }else if($key =='a_mail'){
+                if(!preg_match('/\w[-\w.+]*@([A-Za-z0-9][-A-Za-z0-9]+\.)+[A-Za-z]{2,14}/', $value)){
+                    throw new Exception("請輸入正確信箱格式");
+                }
+                
+            }
+
+        }
     }
 }
