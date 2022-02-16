@@ -93,31 +93,42 @@
     var postAccout = function() {
       //從form取得所有填寫的資料
       var data = $('#addAccountForm').serializeArray();
+
       //二次確認是否新增帳號
       if (confirm('是否新增帳號?')) {
-        //發送新增的資料到controller
-        $.ajax({
-          method: 'POST',
-          url: self._ajaxUrls.accountApi,
-          dataType: 'json',
-          data,
-        }).done(function(data) {
-          //顯示回傳的type
-          alert(data.type);
+        var check = ccheckData(data, 'add');
+        if (check) {
+          //發送新增的資料到controller
+          $.ajax({
+            method: 'POST',
+            url: self._ajaxUrls.accountApi,
+            dataType: 'json',
+            data: {
+              a_account: data[0].value,
+              a_name: data[1].value,
+              a_sex: data[2].value,
+              a_birth: data[3].value,
+              a_mail: data[4].value,
+              a_note: data[5].value,
+            },
+          }).done(function(data) {
+            //顯示回傳的type
+            alert(data.type);
 
-          //將modal欄位內的資料清除
-          $('#addAccount').find('input,textarea').val('');
-          $('#addAccount').find('select').val('N');
+            //將modal欄位內的資料清除
+            $('#addAccount').find('input,textarea').val('');
+            $('#addAccount').find('select').val('N');
 
-          //將table的資料移除
-          $('.table tbody').remove();
+            //將table的資料移除
+            $('.table tbody').remove();
 
-          //隱藏modal
-          $('#addAccount').modal('hide');
+            //隱藏modal
+            $('#addAccount').modal('hide');
 
-          //重新獲取所有資料
-          getAllAccount();
-        });
+            //重新獲取所有資料
+            getAllAccount();
+          });
+        }
       }
     };
 
@@ -244,26 +255,62 @@
       var data = $('#editAccountForm').serializeArray();
       //二次確認是否更新帳號
       if (confirm('是否更新帳號?')) {
-        //發送更新的資料到controller
-        $.ajax({
-          method: 'PUT',
-          url: self._ajaxUrls.accountApi,
-          dataType: 'json',
-          data,
-        }).done(function(data) {
-          // 顯示回傳的type
-          alert(data.type);
+        var check = checkData(data, 'edit');
+        if (check == true) {
+          //發送更新的資料到controller
+          $.ajax({
+            method: 'PUT',
+            url: self._ajaxUrls.accountApi,
+            dataType: 'json',
+            data: {
+              a_account: data[0].value,
+              a_id: data[1].value,
+              a_name: data[2].value,
+              a_sex: data[3].value,
+              a_birth: data[4].value,
+              a_mail: data[5].value,
+              a_note: data[6].value,
+            },
+          }).done(function(data) {
+            // 顯示回傳的type
+            alert(data.type);
 
-          // 移除table的內容
-          $('.table tbody').remove();
+            // 移除table的內容
+            $('.table tbody').remove();
 
-          // 將modal隱藏
-          $('#editAccount').modal('hide');
+            // 將modal隱藏
+            $('#editAccount').modal('hide');
 
-          // 重新獲取所有資料
-          getAllAccount();
-        });
+            // 重新獲取所有資料
+            getAllAccount();
+          });
+        } else {
+          alert(check);
+        }
       }
+    };
+
+    var checkData = function(data, type) {
+      var status = true;
+      var arr = ['帳號', 'a_id', '姓名', '性別', '生日', '信箱'];
+      if (!/^[A-Za-z0-9]{5,15}$/.test(data[0].value)) {
+        return '帳號限制為5~15個字元';
+      }
+      var num = 4;
+      if (type == 'edit') {
+        num = 5;
+      }
+      if (!/\w[-\w.+]*@([A-Za-z0-9][-A-Za-z0-9]+\.)+[A-Za-z]{2,14}/.test(data[num].value)) {
+        return '請輸入正確信箱格式';
+      }
+      $.each(data, function(index, value) {
+        var val = value.value;
+        if (val == '' || val == 'N') {
+          status = arr[index] + '不能為空';
+          return false;
+        }
+      });
+      return status;
     };
 
     /**
