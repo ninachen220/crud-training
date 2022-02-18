@@ -88,7 +88,50 @@
      * 解構子
      */
     var _destruct = function() {};
+    //帳號所有資料
+    var accountData = [];
+    //建立內容
+    var buildContent = function(data) {
+      // 建立變數
+      var tmp, table, thead, tbody, tr, th, td;
+      // 建立暫存容器
+      tmp = $('<div></div>');
+      // 建立tbody區塊資料
+      tbody = $('<tbody></tbody>').appendTo(tmp);
+      // 建立內容
+      $.each(data, function(index1, value1) {
+        //建立tr區塊資料
+        tr = $('<tr data-id="' + value1.a_id + '"></tr>').appendTo(tbody);
+        //建立checkbox
+        td = $(
+          '<td class = "checkBoxClick"><input type="checkbox" class="checkbox[' +
+            value1.a_id +
+            ']"></td>'
+        ).appendTo(tr);
 
+        // 遍歷data資料後放進td
+        $.each(value1, function(index2, value2) {
+          // 不放a_id進table裡顯示
+          if (index2 !== 'a_id') {
+            td = $('<td class="content">' + value2 + '</td>').appendTo(tr);
+          }
+        });
+
+        // 修改按鈕
+        td = $(
+          '<td><button type="button" class="btn btn-outline-secondary edit"><i class="bi bi-pencil-fill"></i></button></td>'
+        ).appendTo(tr);
+
+        // 刪除按鈕
+        td = $(
+          '<td><button type="button" class="btn btn-outline-secondary delete"><i class="bi bi-trash3"></i></button></td>'
+        ).appendTo(tr);
+      });
+      // 取得table元件
+      table = $('.table');
+      // 將暫存容器內容移至table元件
+      tmp.children().appendTo(table);
+    };
     //新增帳號
     var postAccout = function() {
       //從form取得所有填寫的資料
@@ -96,7 +139,7 @@
 
       //二次確認是否新增帳號
       if (confirm('是否新增帳號?')) {
-        var check = ccheckData(data, 'add');
+        var check = checkData(data, 'add');
         if (check) {
           //發送新增的資料到controller
           $.ajax({
@@ -111,23 +154,29 @@
               a_mail: data[4].value,
               a_note: data[5].value,
             },
-          }).done(function(data) {
-            //顯示回傳的type
-            alert(data.type);
+          })
+            .done(function(data) {
+              //顯示回傳的type
+              alert(data.type);
 
-            //將modal欄位內的資料清除
-            $('#addAccount').find('input,textarea').val('');
-            $('#addAccount').find('select').val('N');
+              //將modal欄位內的資料清除
+              $('#addAccount').find('input,textarea').val('');
+              $('#addAccount').find('select').val('N');
 
-            //將table的資料移除
-            $('.table tbody').remove();
+              //將table的資料移除
+              $('.table tbody').remove();
 
-            //隱藏modal
-            $('#addAccount').modal('hide');
+              //隱藏modal
+              $('#addAccount').modal('hide');
 
-            //重新獲取所有資料
-            getAllAccount();
-          });
+              //重新獲取所有資料
+              getAllAccount();
+            })
+            .fail(function(data) {
+              alert(data.responseText);
+            });
+        } else {
+          alert(check);
         }
       }
     };
@@ -143,44 +192,13 @@
         /**
          * 陣列資料配合$.each建立表格
          */
-        // 建立變數
-        var tmp, table, thead, tbody, tr, th, td;
 
-        // 建立暫存容器
-        tmp = $('<div></div>');
-
-        // 建立tbody區塊資料
-        tbody = $('<tbody></tbody>').appendTo(tmp);
-
-        // 建立內容
-        $.each(data.data, function(index1, value1) {
-          //建立tr區塊資料
-          tr = $('<tr data-id="' + value1.a_id + '"></tr>').appendTo(tbody);
-
-          // 遍歷data資料後放進td
-          $.each(value1, function(index2, value2) {
-            // 不放a_id進table裡顯示
-            if (index2 !== 'a_id') {
-              td = $('<td>' + value2 + '</td>').appendTo(tr);
-            }
-          });
-
-          // 修改按鈕
-          td = $(
-            '<td><button type="button" class="btn btn-outline-secondary edit"><i class="bi bi-pencil-fill"></i></button></td>'
-          ).appendTo(tr);
-
-          // 刪除按鈕
-          td = $(
-            '<td><button type="button" class="btn btn-outline-secondary delete"><i class="bi bi-trash3"></i></button></td>'
-          ).appendTo(tr);
+        accountData = data.data;
+        $('#showData').trigger('change');
+        //綁定刪除按鈕
+        $('.delete').on('click', function() {
+          deleteAccout($(this).parents('tr').data('id'));
         });
-
-        // 取得table元件
-        table = $('.table');
-        // 將暫存容器內容移至table元件
-        tmp.children().appendTo(table);
-
         // 綁定修改按鈕觸發modal
         $('.edit').on('click', function() {
           $('#editAccount').modal('show');
@@ -201,7 +219,7 @@
           arr.splice(1, 1);
 
           // 按照順序將tr內的td資料放入modal的欄位內
-          trData.children('td').each(function() {
+          trData.children('.content').each(function() {
             // td內的資料
             var dataText = $(this).text();
 
@@ -231,22 +249,50 @@
     };
 
     // 刪除帳號
-    var deleteAccout = function() {
-      var id = $('#hiddenId').val();
+    var deleteAccout = function(id) {
       // 二次確認是否刪除帳號
       if (confirm('是否刪除帳號?')) {
         // 發送刪除的ID到controller
         $.ajax({
           method: 'DELETE',
+          url: self._ajaxUrls.accountApi + '/' + id,
+          dataType: 'json',
+          data: { status: 0 },
+        })
+          .done(function(data) {
+            alert(data.type);
+            $('.table tbody').remove();
+            getAllAccount();
+          })
+          .fail(function(data) {
+            alert(data.responseText);
+          });
+      }
+    };
+    /**
+     * 刪除多筆帳號
+     * 
+     * @param array ids  待刪除 id 陣列
+     */
+    var deleteSelectAccount = function(id) {
+
+      // 二次確認是否批次刪除帳號
+      if (confirm('是否批次刪除帳號?')) {
+        // 發送刪除的ID到controller
+        $.ajax({
+          method: 'DELETE',
           url: self._ajaxUrls.accountApi,
           dataType: 'json',
-          data: { id: id },
-        }).done(function(data) {
-          alert(data);
-          $('.table tbody').remove();
-          $('#addAccount').modal('hide');
-          getAllAccount();
-        });
+          data: {id},
+        })
+          .done(function(data) {
+            alert(data.type);
+            $('.table tbody').remove();
+            getAllAccount();
+          })
+          .fail(function(data) {
+            alert(data.responseText);
+          });
       }
     };
 
@@ -271,19 +317,24 @@
               a_mail: data[5].value,
               a_note: data[6].value,
             },
-          }).done(function(data) {
-            // 顯示回傳的type
-            alert(data.type);
+          })
+            .done(function(data) {
+              // 顯示回傳的type
+              alert(data.type);
 
-            // 移除table的內容
-            $('.table tbody').remove();
+              // 移除table的內容
+              $('.table tbody').remove();
 
-            // 將modal隱藏
-            $('#editAccount').modal('hide');
+              // 將modal隱藏
+              $('#editAccount').modal('hide');
 
-            // 重新獲取所有資料
-            getAllAccount();
-          });
+              // 重新獲取所有資料
+              getAllAccount();
+            })
+            .fail(function(data) {
+              //回傳錯誤訊息
+              alert(data.responseText);
+            });
         } else {
           alert(check);
         }
@@ -291,21 +342,30 @@
     };
 
     var checkData = function(data, type) {
+      //預設狀態為true
       var status = true;
       var arr = ['帳號', 'a_id', '姓名', '性別', '生日', '信箱'];
+
+      //判斷字元是否為5~15個
       if (!/^[A-Za-z0-9]{5,15}$/.test(data[0].value)) {
         return '帳號限制為5~15個字元';
       }
+
+      //因前端欄位不同下判定若為edit則為5
       var num = 4;
       if (type == 'edit') {
         num = 5;
       }
+      //判斷是否為正確的email格式
       if (!/\w[-\w.+]*@([A-Za-z0-9][-A-Za-z0-9]+\.)+[A-Za-z]{2,14}/.test(data[num].value)) {
         return '請輸入正確信箱格式';
       }
+      //將data全部取出來判斷
       $.each(data, function(index, value) {
         var val = value.value;
+        //判斷val如果為空或為N
         if (val == '' || val == 'N') {
+          //status回傳對應資料不能為空
           status = arr[index] + '不能為空';
           return false;
         }
@@ -338,6 +398,20 @@
       $('.editAccount').on('click', editAccout);
       $('#addAccountModel').on('click', function() {
         $('#addAccount').modal('show');
+      });
+
+      $('#oneByOneDelete').on('click', function() {
+        var checkboxChecked = [];
+        var checkbox = $(':checkbox');
+        for (var i = 0; i < checkbox.length; i++) {
+          if (checkbox[i].checked) {
+            checkboxChecked.push(checkbox[i].className.replace(/[^0-9]/gi, ''));
+          }
+        }
+        deleteSelectAccount(checkboxChecked);
+      });
+      $('#showData').on('change', function() {
+        buildContent(accountData);
       });
     };
 

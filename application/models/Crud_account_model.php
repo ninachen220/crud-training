@@ -32,8 +32,11 @@ class Crud_account_model extends CI_Model
         // 載入資料連線
         $this->load->database();
     }
-
-    //搜尋全部帳號
+    /**
+     * 搜尋全部帳號
+     * 
+     * @return array
+     */
     public function getAllAccount($col = 'a_id,a_account,a_name,a_sex,a_birth,a_mail,a_note')
     {
         //預設性別名稱轉換
@@ -54,14 +57,13 @@ class Crud_account_model extends CI_Model
         return $data;
     }
 
-    //新增帳號
+    /**
+     * 新增帳號
+     *
+     * @return int
+     */
     public function addAccount($data)
     {
-        try {
-            $this->checkData($data,'add');
-        } catch (\Exception $e) {
-            echo 'Message:' .$e->getMessage();
-        }
         //設定status = 1
         $data['status'] = 1;
 
@@ -82,11 +84,7 @@ class Crud_account_model extends CI_Model
      */
     public function editAccount($data)
     {
-        try {
-            $this->checkData($data,'edit');
-        } catch (\Exception $e) {
-            echo 'Message:' .$e->getMessage();
-        }
+
         // 過濾可用欄位資料
         $data = array_intersect_key($data, array_flip($this->tableColumns));
 
@@ -107,45 +105,39 @@ class Crud_account_model extends CI_Model
 
         return $res;
     }
-
-    function checkData($data,$type)
+    /**
+     * 刪除帳號 - 從主鍵
+     *
+     * @return int
+     */
+    function deleteAccount($id)
     {
-        if($type =='add'){
-            unset($data['a_id']);
+        //預設Status = 0
+        $data = [
+            'status' => 0
+        ];
+        //對應是否有相同欄位
+        $data = array_intersect_key($data, array_flip($this->tableColumns));
+
+        // 刪除條件
+        $this->db->where_in('a_id', $id);
+        // 
+        return $this->db->update($this->table, $data);
+    }
+    /**
+     * 批次刪除帳號 - 從主鍵
+     *
+     * @return int
+     */
+    function deleteSelectAccount($data)
+    {
+        //將資料整理成批次要的樣式
+        foreach ($data['id'] as $key => $value) {
+            $res[] = array(
+                'a_id' => $value,
+                'status' => 0
+            );
         }
-
-        foreach($data as $key =>$value){
-            if($key =='a_account'){
-                if(!preg_match('/^[A-Za-z0-9]{5,15}$/', $value)){
-                    throw new Exception("帳號限制為5~15個字元");
-                }
-            }else if($key =='a_id'){
-                if($value ==''){
-                    throw new Exception('沒有主鍵欄位: a_id', 400);
-                }
-
-            }else if($key =='a_name'){
-                if($value ==''){
-                    throw new Exception('姓名不能為空');
-                }
-                
-            }else if($key =='a_sex'){
-                if($value ==''){
-                    throw new Exception('請選擇性別');
-                }
-                
-            }else if($key =='a_birth'){
-                if($value ==''){
-                    throw new Exception('請選擇生日');
-                }
-                
-            }else if($key =='a_mail'){
-                if(!preg_match('/\w[-\w.+]*@([A-Za-z0-9][-A-Za-z0-9]+\.)+[A-Za-z]{2,14}/', $value)){
-                    throw new Exception("請輸入正確信箱格式");
-                }
-                
-            }
-
-        }
+        return $this->db->update_batch($this->table, $res, "a_id");
     }
 }

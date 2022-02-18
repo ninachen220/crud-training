@@ -17,7 +17,18 @@ defined('BASEPATH') or exit('No direct script access allowed');
                     新增
                 </button>
             </div>
-            <div class="offset-md-9 col-3 mt-4">
+            <div class="col-3 mt-4" style="text-align: left;">
+                <select class="form-control" id="showData" style="width: 30%;">
+                    <option value="5">5</option>
+                    <option value="5">10</option>
+                    <option value="5">15</option>
+                    <option value="5">20</option>
+                </select>
+            </div>
+            <div class="offset-md-3 col-3 mt-4" style="text-align: right;">
+                <button class="btn btn-primary" type="button" id="oneByOneDelete">批次刪除</button>
+            </div>
+            <div class="col-3 mt-4">
                 <div class="input-group">
                     <input type="text" class="form-control" aria-label="searchPlace" aria-describedby="search">
                     <button class="btn btn-primary" type="button" id="search"><i class="bi bi-search"></i></button>
@@ -28,6 +39,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
         <table class="table table-striped table-bordered mt-2" id="accountTable" style="text-align: center;">
             <thead>
                 <tr>
+                    <th scope="col"></th>
                     <th scope="col">帳號</th>
                     <th scope="col">姓名</th>
                     <th scope="col">性別</th>

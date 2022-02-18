@@ -52,13 +52,18 @@ class Crud_account extends CI_Controller
                 break;
             case 'DELETE':
                 if (empty($id)) {
-                    // 錯誤
-                    http_response_code(404);
-                    echo 'No Delete ID';
-                    exit;
+                    if (!empty($data['id'])) {
+                        //批次刪除
+                        $this->deleteSelectAccount($data);
+                    } else {
+                        // 錯誤
+                        http_response_code(404);
+                        echo 'No Delete ID';
+                        exit;
+                    }
                 } else {
                     // 刪除一筆資料
-                    // $this->Crud_account_model->deleteAccount($data, $id);
+                    $this->deleteAccount($id, $data);
                 }
                 break;
         }
@@ -93,19 +98,25 @@ class Crud_account extends CI_Controller
      */
     function addAccount($data)
     {
-        // 讀取全部資料
-        $res = $this->Crud_account_model->addAccount($data);
+        try {
+            $this->checkData($data, 'add');
+            // 讀取全部資料
+            $res = $this->Crud_account_model->addAccount($data);
 
-        // 建立輸出陣列
-        $opt = [
-            // 行為：新增一筆
-            'type' => '新增一筆',
-            // 前端AJAX傳過來的資料
-            'data' => $res,
-        ];
+            // 建立輸出陣列
+            $opt = [
+                // 行為：新增一筆
+                'type' => '新增一筆',
+                // 前端AJAX傳過來的資料
+                'data' => $res,
+            ];
 
-        // 輸出JSON
-        echo json_encode($opt);
+            // 輸出JSON
+            echo json_encode($opt);
+        } catch (\Exception $e) {
+            echo $e->getMessage();
+            http_response_code($e->getCode());
+        }
     }
 
     /**
@@ -115,18 +126,115 @@ class Crud_account extends CI_Controller
      */
     function editAccount($data)
     {
-        // 修改帳號資料
-        $res = $this->Crud_account_model->editAccount($data);
+        try {
+            $this->checkData($data, 'edit');
+            // 修改帳號資料
+            $res = $this->Crud_account_model->editAccount($data);
 
-        // 建立輸出陣列
-        $opt = [
-            // 行為：修改一筆
-            'type' => '修改一筆',
-            // 前端AJAX傳過來的資料
-            'data' => $res,
+            // 建立輸出陣列
+            $opt = [
+                // 行為：修改一筆
+                'type' => '修改一筆',
+                // 前端AJAX傳過來的資料
+                'data' => $res,
+            ];
+
+            // 輸出JSON
+            echo json_encode($opt);
+        } catch (\Exception $e) {
+            echo $e->getMessage();
+            http_response_code($e->getCode());
+        }
+    }
+    function deleteAccount($id, $data)
+    {
+        try {
+            // 刪除帳號資料
+            $res = $this->Crud_account_model->deleteAccount($id, $data);
+            if (!isset($res)) {
+                throw new Exception("刪除失敗", 400);
+            }
+            // 建立輸出陣列
+            $opt = [
+                // 刪除一筆
+                'type' => '刪除一筆',
+                // 前端AJAX傳過來的資料
+                'data' => $res,
+            ];
+
+            // 輸出JSON
+            echo json_encode($opt);
+        } catch (\Exception $e) {
+            echo $e->getMessage();
+            http_response_code($e->getCode());
+        }
+    }
+    function deleteSelectAccount($data)
+    {
+        try {
+            // 刪除帳號資料
+            $res = $this->Crud_account_model->deleteSelectAccount($data);
+            if (!isset($res)) {
+                throw new Exception("刪除失敗", 400);
+            }
+            // 建立輸出陣列
+            $opt = [
+                // 刪除一筆
+                'type' => '刪除' . $res . '筆',
+                // 前端AJAX傳過來的資料
+                'data' => $res,
+            ];
+
+            // 輸出JSON
+            echo json_encode($opt);
+        } catch (\Exception $e) {
+            echo $e->getMessage();
+            http_response_code($e->getCode());
+        }
+    }
+    function checkData($data, $type)
+    {
+        // 如果狀態為新增，移除a_id
+        if ($type == 'add') {
+            unset($data['a_id']);
+        }
+
+        // 預設回傳文字
+        $default = [
+            'a_name' => '姓名',
+            'a_birth' => '生日',
+            'a_account' => '帳號'
         ];
-
-        // 輸出JSON
-        echo json_encode($opt);
+        $message = '';
+        $code = 400;
+        foreach ($data as $key => $value) {
+            $res = array_keys(array_flip($default), $key);
+            // 判定是否為帳號
+            if ($key == 'a_account') {
+                if (!preg_match('/^[A-Za-z0-9]{5,15}$/', $value)) {
+                    $message = '帳號限制為5~15個字元';
+                }
+            // 判定是否為主鍵
+            } else if ($key == 'a_id') {
+                if ($value == '') {
+                    $message = '沒有主鍵欄位';
+                }
+            // 判定是否為性別
+            } else if ($key == 'a_sex') {
+                if ($value == 'N') {
+                    $message = '性別不能為空';
+                }
+            //判定是否為Email
+            } else if ($key == 'a_mail') {
+                if (!preg_match('/\w[-\w.+]*@([A-Za-z0-9][-A-Za-z0-9]+\.)+[A-Za-z]{2,14}/', $value)) {
+                    $message = '請輸入正確信箱格式';
+                }
+            }
+            // 選定欄位是否為空值
+            if ($value == '') {
+                $message = $res[0] . '不能為空';
+            }
+            throw new Exception($message, $code);
+        }
     }
 }
