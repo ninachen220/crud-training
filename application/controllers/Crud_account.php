@@ -214,26 +214,36 @@ class Crud_account extends CI_Controller
                 if (!preg_match('/^[A-Za-z0-9]{5,15}$/', $value)) {
                     $message = '帳號限制為5~15個字元';
                 }
-            // 判定是否為主鍵
+                // 判定是否為主鍵
             } else if ($key == 'a_id') {
                 if ($value == '') {
                     $message = '沒有主鍵欄位';
                 }
-            // 判定是否為性別
+                // 判定是否為性別
             } else if ($key == 'a_sex') {
                 if ($value == 'N') {
                     $message = '性別不能為空';
                 }
-            //判定是否為Email
+                // 判定是否為Email
             } else if ($key == 'a_mail') {
                 if (!preg_match('/\w[-\w.+]*@([A-Za-z0-9][-A-Za-z0-9]+\.)+[A-Za-z]{2,14}/', $value)) {
                     $message = '請輸入正確信箱格式';
                 }
+                // 判斷日期欄位是否為正確格式
+            } else if ($key == 'a_birth') {
+                if (!preg_match('/^[1-9]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/', $value)) {
+                    $message = '請輸入正確的日期格式';
+                }
             }
             // 選定欄位是否為空值
-            if ($value == '') {
+            if ($key !== 'a_note' && $value == '') {
                 $message = $res[0] . '不能為空';
             }
+        }
+        // 判定資料正確回傳true
+        if ($message == "") {
+            return true;
+        } else {
             throw new Exception($message, $code);
         }
     }

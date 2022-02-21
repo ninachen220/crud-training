@@ -17,13 +17,18 @@ defined('BASEPATH') or exit('No direct script access allowed');
                     新增
                 </button>
             </div>
-            <div class="col-3 mt-4" style="text-align: left;">
-                <select class="form-control" id="showData" style="width: 30%;">
-                    <option value="5">5</option>
-                    <option value="5">10</option>
-                    <option value="5">15</option>
-                    <option value="5">20</option>
-                </select>
+            <div class="col-3 row mt-4" style="text-align: left;">
+            <div class="col-3 mt-1" style="text-align: right;"><span>顯示</span></div>
+                <div class="col-4">
+                    <select class="form-control" style="text-align: center;" id="showData">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                    </select>
+                </div>
+                <div class="col-4 mt-1"><span>筆</span></div>
+
             </div>
             <div class="offset-md-3 col-3 mt-4" style="text-align: right;">
                 <button class="btn btn-primary" type="button" id="oneByOneDelete">批次刪除</button>
@@ -55,11 +60,6 @@ defined('BASEPATH') or exit('No direct script access allowed');
         </table>
         <nav aria-label="Page navigation example">
             <ul class="pagination justify-content-end">
-                <li class="page-item"><a class="page-link" href="#">前一頁</a></li>
-                <li class="page-item"><a class="page-link" href="#">1</a></li>
-                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                <li class="page-item"><a class="page-link" href="#">下一頁</a></li>
             </ul>
         </nav>
     </div>
