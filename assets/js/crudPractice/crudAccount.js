@@ -25,8 +25,10 @@
   });
 
   // Class Name
+  // 要補資料
   var name = '{name}';
   // Version
+  // 要補資料
   var version = '{version}';
   // Default options
   var defaults = {};
@@ -56,31 +58,24 @@
   };
 
   /**
-        * Javascript物件
-        */
+  * Javascript物件
+  */
   obj.fn.init = function(options) {
     /**
-          * *************** Object Argument Setting ***************
-          */
+    * *************** Object Argument Setting ***************
+    */
     var self = this;
     var _options = options || {};
     // Ajax Response - jqXHR(s)
     var _jqXHRs;
 
-    /**
-          * *************** 屬性設定 ***************
-          */
-
-    /**
-          * *************** 物件必要函式 ***************
-          */
-
-    /**
-          * 建構子
-          */
+   /**
+    * 建構子
+    */
     var _construct = function() {
       console.log('_construct');
 
+      // 
       _initialize();
     };
 
@@ -97,11 +92,18 @@
 
     // 建立內容
     var buildContent = function(page) {
+      // 
       $('.table tbody').remove();
+
+      // 
       perPageNum = $('#showData').val();
+
+      // 
       var data = accountData.slice(perPageNum * page - perPageNum, perPageNum * page);
+
       // 建立變數
       var tmp, table, thead, tbody, tr, th, td;
+
       // 建立暫存容器
       tmp = $('<div></div>');
       // 建立tbody區塊資料
@@ -110,6 +112,7 @@
       $.each(data, function(index1, value1) {
         //建立tr區塊資料
         tr = $('<tr data-id="' + value1.a_id + '"></tr>').appendTo(tbody);
+
         //建立checkbox
         td = $(
           '<td class = "checkBoxClick"><input type="checkbox" class="checkbox[' +
@@ -121,6 +124,7 @@
         $.each(value1, function(index2, value2) {
           // 不放a_id進table裡顯示
           if (index2 !== 'a_id') {
+            // 
             td = $('<td class="content">' + value2 + '</td>').appendTo(tr);
           }
         });
@@ -135,6 +139,7 @@
           '<td><button type="button" class="btn btn-outline-secondary delete"><i class="bi bi-trash3"></i></button></td>'
         ).appendTo(tr);
       });
+
       // 取得table元件
       table = $('.table');
       // 將暫存容器內容移至table元件
@@ -142,11 +147,17 @@
 
       // 綁定刪除按鈕
       $('.delete').on('click', function() {
+        // 
         deleteAccout($(this).parents('tr').data('id'));
       });
+
       // 綁定修改按鈕觸發modal
       $('.edit').on('click', function() {
+        // 
         $('#editAccount').modal('show');
+
+        // 這裡的 $(this)是什麼? 為什麼不是拿表單的資料?
+        // 請改成拿取 modal 中的名字
 
         // 指定當前按鈕的tr
         var trData = $(this).parents('tr');
@@ -156,11 +167,14 @@
 
         // 將modal內的欄位id整理成array
         var arr = [];
+        // 
         $('#editAccount').find('input,select,textarea').each(function() {
+          // 
           arr.push($(this).attr('id'));
         });
 
         // 將放data-id的隱藏欄位移除
+        // 請改成如果其他人表單添加欄位後，也不會影響移除
         arr.splice(1, 1);
 
         // 按照順序將tr內的td資料放入modal的欄位內
@@ -169,6 +183,7 @@
           var dataText = $(this).text();
 
           // 判斷是否為性別欄位
+          // 請改成如果其他人表單添加欄位後，也不會影響判斷
           if (arr[0] == 'editAccountSex') {
             // 修改td的資料與option相符
             switch (dataText) {
@@ -183,6 +198,7 @@
                 break;
             }
           } else {
+            // 
             $('#' + arr[0]).val(dataText);
           }
 
@@ -191,6 +207,7 @@
         });
       });
     };
+
     // 新增帳號
     var postAccout = function() {
       // 從form取得所有填寫的資料
@@ -198,7 +215,10 @@
 
       // 二次確認是否新增帳號
       if (confirm('是否新增帳號?')) {
+        // 
         var check = checkData(data, 'add');
+
+        // 
         if (check) {
           // 發送新增的資料到controller
           $.ajax({
@@ -215,26 +235,30 @@
             },
           })
             .done(function(data) {
-              //顯示回傳的type
+              // 顯示回傳的type
               alert(data.type);
 
-              //將modal欄位內的資料清除
+              // 將modal欄位內的資料清除
               $('#addAccount').find('input,textarea').val('');
+              // 
               $('#addAccount').find('select').val('N');
 
-              //將table的資料移除
+              // 將table的資料移除
               $('.table tbody').remove();
 
-              //隱藏modal
+              // 隱藏modal
               $('#addAccount').modal('hide');
 
-              //重新獲取所有資料
+              // 重新獲取所有資料
               getAllAccount();
             })
             .fail(function(data) {
+              // 
               alert(data.responseText);
             });
         } else {
+
+          // 
           alert(check);
         }
       }
@@ -250,7 +274,9 @@
       }).done(function(data) {
         // 資料放入變數中
         accountData = data.data;
+
         // 觸發變換顯示數量來顯示資料
+        // 為什麼需要轉變數量?
         $('#showData').trigger('change');
       });
     };
@@ -267,15 +293,22 @@
           data: { status: 0 },
         })
           .done(function(data) {
+            // 
             alert(data.type);
+
+            // 
             $('.table tbody').remove();
+
+            // 
             getAllAccount();
           })
           .fail(function(data) {
+            // 
             alert(data.responseText);
           });
       }
     };
+
     /**
      * 刪除多筆帳號
      * 
@@ -292,11 +325,17 @@
           data: { id },
         })
           .done(function(data) {
+            // 
             alert(data.type);
+
+            // 
             $('.table tbody').remove();
+
+            // 
             getAllAccount();
           })
           .fail(function(data) {
+            // 
             alert(data.responseText);
           });
       }
@@ -307,7 +346,10 @@
       var data = $('#editAccountForm').serializeArray();
       // 二次確認是否更新帳號
       if (confirm('是否更新帳號?')) {
+        // 
         var check = checkData(data, 'edit');
+
+        // 
         if (check == true) {
           // 發送更新的資料到controller
           $.ajax({
@@ -342,6 +384,7 @@
               alert(data.responseText);
             });
         } else {
+          // 
           alert(check);
         }
       }
@@ -351,6 +394,7 @@
     var checkData = function(data, type) {
       // 預設狀態為true
       var status = true;
+      // 
       var arr = ['帳號', 'a_id', '姓名', '性別', '生日', '信箱'];
 
       // 判斷字元是否為5~15個
@@ -377,6 +421,7 @@
 
       // 將data全部取出來判斷
       $.each(data, function(index, value) {
+        // 
         var val = value.value;
         // 判斷val如果為空或為N
         if (val == '' || val == 'N') {
@@ -385,10 +430,12 @@
           return false;
         }
       });
+
+      // 
       return status;
     };
 
-    // 新增頁碼按鈕
+    // 顯示頁碼按鈕
     var addPageButton = function() {
       // 顯示的資料筆數
       perPageNum = $('#showData').val();
@@ -397,6 +444,7 @@
       // 總頁數
       var pageTotal = Math.ceil(dataLength / perPageNum);
 
+      // 
       var tmp = $('<div></div>');
 
       // 新增前一頁
@@ -409,11 +457,9 @@
       } else if (pageTotal > 5) {
         // 當前頁面如果大於1，開始的頁面按鈕則從前一個數字開始
         var end = pageTotal;
-        if (page > 1) {
-          var start = page - 1;
-        } else {
-          start = page;
-        }
+
+        // 
+        start = page > 1 ? page - 1 : page;
         // 如果當前頁面小於總頁數-2，只顯示當前頁面左右兩個數字及最後一頁，中間審略不顯示
         if (page < pageTotal - 2) {
           end = page + 1;
@@ -421,25 +467,33 @@
         } else if (page == pageTotal - 2) {
           end = pageTotal;
         } else {
+          // 
           start = pageTotal - 2;
           end = pageTotal;
         }
+
         // 頁碼按鈕
         for (var i = start; i <= end; i++) {
           // 設定當前頁碼顯示顏色
           if (i == page) {
+            // 
             $('<li class="page-item"><a class="page-link" style ="font-weight:bolder;color:navy;">' + i + '</a></li>').appendTo(tmp);
           } else {
+            // 
             $('<li class="page-item"><a class="page-link">' + i + '</a></li>').appendTo(tmp);
           }
         }
         // 顯示省略頁碼
         if (page < pageTotal - 2) {
+          // 
           $('<li class="page-item"><a class="page-link">...</a></li>').appendTo(tmp);
+          // 
           $('<li class="page-item"><a class="page-link">' + pageTotal + '</a></li>').appendTo(tmp);
         }
       } else {
+        // 
         for (var i = 1; i <= pageTotal; i++) {
+          // 
           $('<li class="page-item"><a class="page-link">' + i + '</a></li>').appendTo(tmp);
         }
       }
@@ -449,15 +503,19 @@
 
       // 清除頁面按鈕並加入新的按鈕
       var pageNavBar = $('.pagination');
+      // 
       $('.page-item').remove();
+      // 
       tmp.children().appendTo(pageNavBar);
 
+      // 
       pageButtonEvent();  
 
     };
 
     // 綁定按鈕事件
     var pageButtonEvent = function(){
+      // 綁定分頁切換事件
       $('li').on('click', function() {
         // 當前頁面按鈕文字
         var pageText = $(this).find('a').text();
@@ -466,6 +524,9 @@
         // 總頁數
         var pageTotal = Math.ceil(dataLength / perPageNum);
 
+        /**
+         * 改變當前所在分數數
+         */
         // 判定數字是否需要更改頁碼
         if (
           // 當數字已經是第一頁
@@ -490,10 +551,12 @@
           }
         }
 
-        // 重新設定動態頁碼按鈕
+        // 
         if (pageTotal > 5) {
+          // 重新設定動態頁碼按鈕
           addPageButton();
         }
+
         // 從新載入頁面資料
         buildContent(page);
       });
@@ -521,69 +584,80 @@
       console.log('_evenBind');
       // 搜尋
       $('#search').on('click', getAllAccount);
+
       // 新增帳號
       $('.addAccount').on('click', postAccout);
+
       // 編輯帳號
       $('.editAccount').on('click', editAccout);
+
       // 顯示新增modal
       $('#addAccountModel').on('click', function() {
         $('#addAccount').modal('show');
       });
+
       // 批次刪除
       $('#oneByOneDelete').on('click', function() {
+        // 
         var checkboxChecked = [];
+
+        // 
         var checkbox = $(':checkbox');
+
+        // 
         for (var i = 0; i < checkbox.length; i++) {
+          // 
           if (checkbox[i].checked) {
+            // 
             checkboxChecked.push(checkbox[i].className.replace(/[^0-9]/gi, ''));
           }
         }
+
+        // 
         deleteSelectAccount(checkboxChecked);
       });
+
       // 變換顯示數量
       $('#showData').on('change', function() {
+        // 
         page = 1;
+
+        // 
         addPageButton();
+
+        // 
         buildContent(page);
       });
     };
 
     /**
-          * *************** 功能函式 ***************
-          */
-
-    /**
-          * *************** 事件函式 ***************
-          */
-
-    /**
-          * 事件 - 送出
-          */
+    * 事件 - 送出
+    */
     var _submit = function(e) {
       return this;
     };
 
     /**
-          * 事件 - 清除
-          */
+    * 事件 - 清除
+    */
     var _clear = function(e) {
       return this;
     };
 
     /**
-          * 事件 - 增加
-          */
+    * 事件 - 增加
+    */
     var _add = function(e) {
       return this;
     };
 
     /**
-          * *************** 私有函式 ***************
-          */
+    * *************** 私有函式 ***************
+    */
 
     /**
-          * *************** Run Constructor ***************
-          */
+    * *************** Run Constructor ***************
+    */
     _construct();
   };
 
