@@ -37,17 +37,20 @@ class Crud_account_model extends CI_Model
      * 
      * @return array
      */
-    public function getAllAccount($col = 'a_id,a_account,a_name,a_sex,a_birth,a_mail,a_note')
+    public function getAllAccount($data)
     {
+        $text = UrlDecode(UrlDecode($data['text']));
+        $sort = $data['sortType'];
+        $col = 'a_id,a_account,a_name,a_sex,a_birth,a_mail,a_note';
         //預設性別名稱轉換
         $dataSexDefault = [
-            'N' => '未選擇',
+            '' => '未選擇',
             'M' => '男生',
             'F' => '女生'
         ];
 
         //執行sql後獲取的資料
-        $data = $this->db->select($col)->from($this->table)->where('status', '1')->get()->result_array();
+        $data = $this->db->select($col)->from($this->table)->where('status', '1')->order_by($text, $sort)->get()->result_array();
 
         //整理資料成對應名稱
         for ($i = 0; $i < count($data); $i++) {
@@ -124,6 +127,7 @@ class Crud_account_model extends CI_Model
         // 
         return $this->db->update($this->table, $data);
     }
+
     /**
      * 批次刪除帳號 - 從主鍵
      *
@@ -139,5 +143,38 @@ class Crud_account_model extends CI_Model
             );
         }
         return $this->db->update_batch($this->table, $res, "a_id");
+    }
+
+    /**
+     * 查詢帳號資料
+     *
+     * @return array
+     */
+    function getSpecificAccount($id, $data)
+    {
+        $arr = [];
+        $text = UrlDecode(UrlDecode($data['text']));
+        $sort = $data['sortType'];
+        //預設性別名稱轉換
+        $dataSexDefault = [
+            '' => '未選擇',
+            'M' => '男生',
+            'F' => '女生'
+        ];
+        // 過濾可用欄位資料
+        foreach ($this->tableColumns as $row) {
+            if ($row !== 'a_id' && $row !== 'status') {
+                $col[] = $row;
+            }
+            $arr[$row] = $id;
+        }
+        unset($arr['status']);
+        $res = $this->db->select($col)->from($this->table)->group_start()->or_like($arr)->group_end()->where('status', '1')->order_by($text, $sort)->get()->result_array();
+
+        //整理資料成對應名稱
+        for ($i = 0; $i < count($res); $i++) {
+            $res[$i]['a_sex'] = $dataSexDefault[$res[$i]['a_sex']];
+        }
+        return $res;
     }
 }
