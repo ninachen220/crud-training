@@ -8,5 +8,7 @@
             "app\\": "./"
         }
     },
-    "require": {}
+    "require": {
+        "marshung/io": "^0.9.11"
+    }
 }

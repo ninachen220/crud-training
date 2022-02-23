@@ -37,9 +37,8 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 
 
-    <!-- <script src="/node_modules/popper.js/dist/popper.min.js"></script> -->
-    <!-- <script src="/node_modules/popper.js"></script> -->
-    <script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.js"></script>
+    <script src="/node_modules/popper.js/dist/popper.min.js"></script>
+    <script src="/node_modules/popper.js/dist/popper.js"></script>
     <link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.min.css">
     <script src="/node_modules/jquery/dist/jquery.min.js"></script>
     <script src="/node_modules/bootstrap/dist/js/bootstrap.min.js"></script>

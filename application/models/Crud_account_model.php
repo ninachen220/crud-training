@@ -14,7 +14,7 @@ class Crud_account_model extends CI_Model
     /**
      * 欄位資料
      */
-    protected $tableColumns = [
+    public $tableColumns = [
         'a_id',
         'a_account',
         'a_name',
@@ -32,16 +32,21 @@ class Crud_account_model extends CI_Model
         // 載入資料連線
         $this->load->database();
     }
+
     /**
-     * 搜尋全部帳號
+     * 搜尋全部帳號、查詢帳號
      * 
      * @return array
      */
     public function getAllAccount($data)
     {
-        $text = UrlDecode(UrlDecode($data['text']));
+        // 欄位名稱
+        $text = $data['text'];
+        // 排列方式
         $sort = $data['sortType'];
+        // 預設欄位
         $col = 'a_id,a_account,a_name,a_sex,a_birth,a_mail,a_note';
+
         //預設性別名稱轉換
         $dataSexDefault = [
             '' => '未選擇',
@@ -49,12 +54,32 @@ class Crud_account_model extends CI_Model
             'F' => '女生'
         ];
 
-        //執行sql後獲取的資料
-        $data = $this->db->select($col)->from($this->table)->where('status', '1')->order_by($text, $sort)->get()->result_array();
+        // 寫入select sql
+        $this->db->select($col)->from($this->table);
+
+        // 如果有搜尋文字
+        if (isset($data['searchText'])) {
+
+            // 解密搜尋文字
+            $searchText = UrlDecode(UrlDecode($data['searchText']));
+
+            // 過濾可用欄位資料 並將搜尋文字放入$arr
+            foreach ($this->tableColumns as $row) {
+                if ($row !== 'a_id' && $row !== 'status') {
+                    $arr[$row] = $searchText;
+                }
+            }
+
+            // 寫入條件sql
+            $this->db->group_start()->or_like($arr)->group_end();
+        }
+
+        // 寫入條件sql並回傳資料
+        $data = $this->db->where('status', '1')->order_by($text, $sort)->get()->result_array();
 
         //整理資料成對應名稱
-        for ($i = 0; $i < count($data); $i++) {
-            $data[$i]['a_sex'] = $dataSexDefault[$data[$i]['a_sex']];
+        foreach ($data as $key => $row) {
+            $data[$key]['a_sex'] = $dataSexDefault[$data[$key]['a_sex']];
         }
 
         return $data;
@@ -70,9 +95,6 @@ class Crud_account_model extends CI_Model
         //設定status = 1
         $data['status'] = 1;
 
-        // 過濾可用欄位資料
-        $data = array_intersect_key($data, array_flip($this->tableColumns));
-
         // 寫入資料表
         $res = $this->db->insert($this->table, $data);
 
@@ -87,10 +109,6 @@ class Crud_account_model extends CI_Model
      */
     public function editAccount($data)
     {
-
-        // 過濾可用欄位資料
-        $data = array_intersect_key($data, array_flip($this->tableColumns));
-
         $res = 0;
 
         // 檢查有無主鍵
@@ -119,8 +137,6 @@ class Crud_account_model extends CI_Model
         $data = [
             'status' => 0
         ];
-        //對應是否有相同欄位
-        $data = array_intersect_key($data, array_flip($this->tableColumns));
 
         // 刪除條件
         $this->db->where_in('a_id', $id);
@@ -143,38 +159,5 @@ class Crud_account_model extends CI_Model
             );
         }
         return $this->db->update_batch($this->table, $res, "a_id");
-    }
-
-    /**
-     * 查詢帳號資料
-     *
-     * @return array
-     */
-    function getSpecificAccount($id, $data)
-    {
-        $arr = [];
-        $text = UrlDecode(UrlDecode($data['text']));
-        $sort = $data['sortType'];
-        //預設性別名稱轉換
-        $dataSexDefault = [
-            '' => '未選擇',
-            'M' => '男生',
-            'F' => '女生'
-        ];
-        // 過濾可用欄位資料
-        foreach ($this->tableColumns as $row) {
-            if ($row !== 'a_id' && $row !== 'status') {
-                $col[] = $row;
-            }
-            $arr[$row] = $id;
-        }
-        unset($arr['status']);
-        $res = $this->db->select($col)->from($this->table)->group_start()->or_like($arr)->group_end()->where('status', '1')->order_by($text, $sort)->get()->result_array();
-
-        //整理資料成對應名稱
-        for ($i = 0; $i < count($res); $i++) {
-            $res[$i]['a_sex'] = $dataSexDefault[$res[$i]['a_sex']];
-        }
-        return $res;
     }
 }

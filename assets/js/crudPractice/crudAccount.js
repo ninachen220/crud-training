@@ -51,7 +51,10 @@
     // AJAX URL
     _ajaxUrls: {
       // Account CRUD AJAX server side url.
+      // AJAX
       accountApi: '/Crud_account/ajax',
+      // 資料匯入
+      importApi: '/Crud_account/import',
     },
   };
 
@@ -127,12 +130,12 @@
 
         // 修改按鈕
         td = $(
-          '<td><button type="button" class="btn btn-outline-secondary edit"><i class="bi bi-pencil-fill"></i></button></td>'
+          '<td><button type="button" class="btn btn-success edit"><i class="bi bi-pencil-fill"></i></button></td>'
         ).appendTo(tr);
 
         // 刪除按鈕
         td = $(
-          '<td><button type="button" class="btn btn-outline-secondary delete"><i class="bi bi-trash3"></i></button></td>'
+          '<td><button type="button" class="btn btn-danger delete"><i class="bi bi-trash3"></i></button></td>'
         ).appendTo(tr);
       });
       // 取得table元件
@@ -578,11 +581,11 @@
         method: 'GET',
         url:
           self._ajaxUrls.accountApi +
-          '/' +
+          '?searchText=' +
           searchText +
-          '?sortType= ' +
+          '&sortType=' +
           sortType +
-          '&text= ' +
+          '&text=' +
           text,
         dataType: 'json',
       })
@@ -596,6 +599,42 @@
         });
     };
 
+    // 匯入資料
+    var importData = function(event, form) {
+      try {
+        // 取消表單預設提交
+        event.preventDefault();
+        // 單個檔案
+        var file = $('#importData')[0].files[0];
+        // 沒有選擇檔案則回傳錯誤訊息
+        if (!file) {
+          throw new Error('尚未選擇資料', 400);
+        }
+        // 建立一個新的 FormData 物件
+        var formData = new FormData(form);
+
+        // 將file加入formData裡
+        formData.append('fileupload', file);
+        if (confirm('是否確認匯入?') === true) {
+          $.ajax({
+            url: self._ajaxUrls.importApi,
+            type: 'POST',
+            contentType: false,
+            processData: false,
+            data: formData,
+          })
+            .done(function(data) {
+              console.log(data);
+            })
+            .fail(function(data) {
+              alert(data);
+            });
+        }
+      } catch (error) {
+        alert(error.message);
+      }
+    };
+
     /**
      * 初始化
      */
@@ -604,6 +643,12 @@
 
       //獲取所有帳號
       getAllAccount();
+
+      // 取得file
+      let importForm = document.forms.namedItem('importForm');
+      importForm.addEventListener('submit', function(event) {
+        importData(event, importForm);
+      });
 
       /**
      * 事件綁定
