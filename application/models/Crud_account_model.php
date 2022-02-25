@@ -36,6 +36,7 @@ class Crud_account_model extends CI_Model
     /**
      * 搜尋全部帳號、查詢帳號
      * 
+     * @param array $data 排序方式及欄位、搜尋文字
      * @return array
      */
     public function getAllAccount($data)
@@ -47,7 +48,7 @@ class Crud_account_model extends CI_Model
         // 預設欄位
         $col = 'a_id,a_account,a_name,a_sex,a_birth,a_mail,a_note';
 
-        //預設性別名稱轉換
+        // 預設性別名稱轉換
         $dataSexDefault = [
             '' => '未選擇',
             'M' => '男生',
@@ -65,7 +66,7 @@ class Crud_account_model extends CI_Model
 
             // 過濾可用欄位資料 並將搜尋文字放入$arr
             foreach ($this->tableColumns as $row) {
-                if ($row !== 'a_id' && $row !== 'status') {
+                if ($row !== 'a_id' || $row !== 'status') {
                     $arr[$row] = $searchText;
                 }
             }
@@ -88,11 +89,12 @@ class Crud_account_model extends CI_Model
     /**
      * 新增帳號
      *
+     * @param array $data 帳號資料
      * @return int
      */
     public function addAccount($data)
     {
-        //設定status = 1
+        // 設定狀態為存在
         $data['status'] = 1;
 
         // 寫入資料表
@@ -105,6 +107,7 @@ class Crud_account_model extends CI_Model
     /**
      * 更新資料 - 從主鍵
      *
+     * @param array $data 帳號資料
      * @return int
      */
     public function editAccount($data)
@@ -129,35 +132,38 @@ class Crud_account_model extends CI_Model
     /**
      * 刪除帳號 - 從主鍵
      *
+     * @param int $id 帳號主鍵
      * @return int
      */
-    function deleteAccount($id)
+    public function deleteAccount($id)
     {
-        //預設Status = 0
+        // 預設狀態為刪除
         $data = [
             'status' => 0
         ];
 
         // 刪除條件
         $this->db->where_in('a_id', $id);
-        // 
+        // 成功時回傳主鍵鍵值
         return $this->db->update($this->table, $data);
     }
 
     /**
      * 批次刪除帳號 - 從主鍵
      *
+     * @param array $data 帳號主鍵
      * @return int
      */
-    function deleteSelectAccount($data)
+    public function deleteSelectAccount($data)
     {
-        //將資料整理成批次要的樣式
+        // 將資料整理成批次要的樣式
         foreach ($data['id'] as $key => $value) {
             $res[] = array(
                 'a_id' => $value,
                 'status' => 0
             );
         }
+        // 成功時回傳主鍵鍵值
         return $this->db->update_batch($this->table, $res, "a_id");
     }
 }

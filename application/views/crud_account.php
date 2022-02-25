@@ -13,7 +13,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
         <h2>帳號管理</h2>
         <div class="row">
             <div class="col-md-4">
-                <form method="POST" enctype='multipart/form-data'name = 'importForm'>
+                <form method="POST" enctype='multipart/form-data' name='importForm'>
                     <div class="row">
                         <div class="col-md-8">
                             <input type="file" id="importData">
@@ -25,9 +25,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
                 </form>
             </div>
             <div class="col-md-2">
-                <form action="Crud_account/exportData">
-                    <button type="submit" class="btn btn-info" id="export">匯出</button>
-                </form>
+                <button type="button" class="btn btn-info" id="export">匯出</button>
             </div>
             <div class="col-md-6" style="text-align: right;">
                 <button type="button" class="btn btn-warning" id="addAccountModel">

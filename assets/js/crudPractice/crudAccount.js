@@ -54,7 +54,9 @@
       // AJAX
       accountApi: '/Crud_account/ajax',
       // 資料匯入
-      importApi: '/Crud_account/import',
+      importApi: '/Crud_account/importData',
+      // 資料匯出
+      exportApi: '/Crud_account/exportData',
     },
   };
 
@@ -310,7 +312,6 @@
           method: 'DELETE',
           url: self._ajaxUrls.accountApi + '/' + id,
           dataType: 'json',
-          data: { status: 0 },
         })
           .done(function(data) {
             alert(data.type);
@@ -624,7 +625,7 @@
             data: formData,
           })
             .done(function(data) {
-              console.log(data);
+              alert(data);
             })
             .fail(function(data) {
               alert(data);
@@ -635,13 +636,21 @@
       }
     };
 
+    // 匯出資料
+    var exportData = function() {
+      // 二次確認
+      if (confirm('是否確認匯出?') === true) {
+        // 前往函式
+        window.open('Crud_account/exportData');
+      }
+    };
     /**
      * 初始化
      */
     var _initialize = function() {
       console.log('_initialize');
 
-      //獲取所有帳號
+      // 獲取所有帳號
       getAllAccount();
 
       // 取得file
@@ -649,7 +658,6 @@
       importForm.addEventListener('submit', function(event) {
         importData(event, importForm);
       });
-
       /**
      * 事件綁定
      */
@@ -784,6 +792,9 @@
         }
         // 設定th i標前的class
         $(this).find('i').attr('class', setClass);
+      });
+      $('#export').on('click', function() {
+        exportData();
       });
     };
 

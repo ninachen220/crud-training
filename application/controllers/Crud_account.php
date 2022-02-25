@@ -32,7 +32,7 @@ class Crud_account extends CI_Controller
     /**
      * 處理AJAX 方法及分流
      *
-     * @param mixed $name
+     * @param int $id 主鍵
      */
     public function ajax($id = null)
     {
@@ -81,7 +81,7 @@ class Crud_account extends CI_Controller
                         }
                     } else {
                         // 刪除一筆資料
-                        $result = $this->deleteAccount($id, $data);
+                        $result = $this->deleteAccount($id);
                     }
                     break;
             }
@@ -103,7 +103,7 @@ class Crud_account extends CI_Controller
     /**
      * 獲取所有資料
      *
-     * @param mixed $data 排序方式、排序欄位、搜尋文字
+     * @param array $data 排序方式及欄位、搜尋文字
      * @return array
      */
     function getAllAccount($data)
@@ -152,7 +152,7 @@ class Crud_account extends CI_Controller
     /**
      * 修改帳號
      *
-     * @param mixed $data 帳號資料
+     * @param array $data 帳號資料
      * @return array
      */
     function editAccount($data)
@@ -177,15 +177,14 @@ class Crud_account extends CI_Controller
     /**
      * 刪除帳號
      *
-     * @param mixed $id 帳號id
+     * @param array $id 主鍵
      * @return array
      */
-    function deleteAccount($id)
+    public function deleteAccount($id)
     {
         // 刪除帳號資料
         $res = $this->Crud_account_model->deleteAccount($id);
-
-        // 判斷是否有回傳資料
+        // 判斷是否有值
         if (!isset($res)) {
             // 拋出錯誤訊息
             throw new Exception("刪除失敗", 400);
@@ -206,15 +205,15 @@ class Crud_account extends CI_Controller
     /**
      * 批次刪除帳號
      *
-     * @param mixed $data 帳號a_id
+     * @param array $data 帳號主鍵
      * @return array
      */
-    function deleteSelectAccount($data)
+    public function deleteSelectAccount($data)
     {
         // 刪除帳號資料
         $res = $this->Crud_account_model->deleteSelectAccount($data);
 
-        // 判斷是否有回傳值
+        // 判斷是否有資料
         if (!isset($res)) {
             // 拋出錯誤訊息
             throw new Exception("刪除失敗", 400);
@@ -237,7 +236,7 @@ class Crud_account extends CI_Controller
      *
      * @param mixed $data 帳號資料
      */
-    function checkData($data)
+    public function checkData($data)
     {
         // 預設回傳文字
         $default = [
@@ -245,13 +244,10 @@ class Crud_account extends CI_Controller
             'a_birth' => '生日',
             'a_account' => '帳號'
         ];
-        // 回傳錯誤代碼
+        // 錯誤代碼
         $code = 400;
-        // 判斷資料是否有錯誤
+        // 判斷資料是否有符合格式
         foreach ($data as $key => $value) {
-            // 設定回傳訊息
-            $message = '';
-
             // 判定是否為帳號
             if ($key == 'a_account' && !preg_match('/^[A-Za-z0-9]{5,15}$/', $value)) {
                 $message = '帳號限制為5~15個字元';
@@ -265,11 +261,8 @@ class Crud_account extends CI_Controller
                 $message = '請輸入正確的日期格式';
             }
             // 判斷欄位是否為空值
-            if ($key !== 'a_note' && $value == '') {
-                $message = $default[$key] . '不能為空';
-            }
-            if (!empty($message)) {
-                throw new Exception($message, $code);
+            if ($key !== 'a_note'&& $key !=='a_id' && $value == '') {
+                throw new Exception($default[$key] . '不能為空', $code);
             }
         }
     }
@@ -277,27 +270,182 @@ class Crud_account extends CI_Controller
     /**
      * 輸出資料庫檔案
      */
-    function exportData()
+    public function exportData()
     {
         try {
             // 預設撈取檔案順序為主鍵正序
             $sort = ['sortType' => 'ASC', 'text' => 'a_id'];
             // 撈取資料庫資料
             $data = $this->Crud_account_model->getAllAccount($sort);
-            // 如果沒有資料
+            // 判斷是否有資料
             if (!isset($data)) {
                 // 拋出錯誤訊息
                 throw new Exception("資料撈取失敗", 400);
             }
-
-            // 結構定義-簡易模式
-            $defined = array(
-                'a_account' => '帳號',
-                'a_name' => '姓名',
-                'a_sex' => '性別',
-                'a_birth' => '生日',
-                'a_mail' => '信箱',
-                'a_note' => '備註'
+            // 結構定義-複雜模式
+            // 標題1
+            $title1 = array(
+                'config' => array(
+                    'type' => 'title',
+                    'name' => 'title1',
+                    'style' => array(
+                        'font-size' => '16'
+                    ),
+                    'class' => ''
+                ),
+                'defined' => array(
+                    't1' => array(
+                        'key' => 't1',
+                        'value' => '主鍵',
+                        'col' => '1',
+                        'row' => '1',
+                        'style' => array(),
+                        'class' => '',
+                        'default' => '',
+                        'list' => ''
+                    ),
+                    't2' => array(
+                        'key' => 't2',
+                        'value' => '帳號',
+                        'col' => '1',
+                        'row' => '1',
+                        'style' => array(),
+                        'class' => '',
+                        'default' => '',
+                        'list' => ''
+                    ),
+                    't3' => array(
+                        'key' => 't3',
+                        'value' => '姓名',
+                        'col' => '1',
+                        'row' => '1',
+                        'style' => array(),
+                        'class' => '',
+                        'default' => '',
+                        'list' => ''
+                    ),
+                    't4' => array(
+                        'key' => 't4',
+                        'value' => '性別',
+                        'col' => '1',
+                        'row' => '1',
+                        'style' => array(),
+                        'class' => '',
+                        'default' => '',
+                        'list' => ''
+                    ),
+                    't5' => array(
+                        'key' => 't5',
+                        'value' => '生日',
+                        'col' => '1',
+                        'row' => '1',
+                        'style' => array(),
+                        'class' => '',
+                        'default' => '',
+                        'list' => ''
+                    ),
+                    't6' => array(
+                        'key' => 't6',
+                        'value' => '信箱',
+                        'col' => '2',
+                        'row' => '1',
+                        'style' => array(),
+                        'class' => '',
+                        'default' => '',
+                        'list' => ''
+                    ),
+                    't7' => array(
+                        'key' => 't7',
+                        'value' => '備註',
+                        'col' => '2',
+                        'row' => '1',
+                        'style' => array(),
+                        'class' => '',
+                        'default' => '',
+                        'list' => ''
+                    )
+                )
+            );
+            // 內容
+            $content = array(
+                'config' => array(
+                    'type' => 'content',
+                    'name' => 'content',
+                    'style' => array(),
+                    'class' => ''
+                ),
+                'defined' => array(
+                    'a_id' => array(
+                        'key' => 'a_id',
+                        'value' => '主鍵',
+                        'col' => '1',
+                        'row' => '1',
+                        'style' => array(),
+                        'class' => '',
+                        'default' => '',
+                        'list' => ''
+                    ),
+                    'a_account' => array(
+                        'key' => 'a_account',
+                        'value' => '帳號',
+                        'col' => '1',
+                        'row' => '1',
+                        'style' => array(),
+                        'class' => '',
+                        'default' => '',
+                        'list' => ''
+                    ),
+                    'a_name' => array(
+                        'key' => 'a_name',
+                        'value' => '姓名',
+                        'col' => '1',
+                        'row' => '1',
+                        'style' => array(),
+                        'class' => '',
+                        'default' => '',
+                        'list' => ''
+                    ),
+                    'a_sex' => array(
+                        'key' => 'a_sex',
+                        'value' => '性別',
+                        'col' => '1',
+                        'row' => '1',
+                        'style' => array(),
+                        'class' => '',
+                        'default' => '',
+                        'list' => ''
+                    ),
+                    'a_birth' => array(
+                        'key' => 'a_birth',
+                        'value' => '生日',
+                        'col' => '1',
+                        'row' => '1',
+                        'style' => array(),
+                        'class' => '',
+                        'default' => '',
+                        'list' => ''
+                    ),
+                    'a_mail' => array(
+                        'key' => 'a_mail',
+                        'value' => '信箱',
+                        'col' => '2',
+                        'row' => '1',
+                        'style' => array(),
+                        'class' => '',
+                        'default' => '1',
+                        'list' => ''
+                    ),
+                    'a_note' => array(
+                        'key' => 'a_note',
+                        'value' => '備註1',
+                        'col' => '2',
+                        'row' => '1',
+                        'style' => array(),
+                        'class' => '',
+                        'default' => '1',
+                        'list' => ''
+                    )
+                )
             );
 
             // IO物件建構
@@ -310,13 +458,35 @@ class Crud_account extends CI_Controller
 
             // 載入外部定義
             $conf = $io->getConfig()
-                ->setTitle($defined)
-                ->setContent($defined);
+                ->setTitle($title1)
+                ->setContent($content);
+
+            // 建構外部對映表
+            $listMap = array(
+                'gender' => array(
+                    array(
+                        'value' => 'M',
+                        'text' => '男'
+                    ),
+                    array(
+                        'value' => 'F',
+                        'text' => '女'
+                    )
+                )
+            );
+
+            // 載入外部對映表
+            $conf->setList($listMap);
 
             // 必要欄位設定 - 提供讀取資料時驗証用 - 有設定，且必要欄位有無資料者，跳出 - 因各版本excel對空列定義不同，可能編輯過列，就會產生沒有結尾的空列，導致在讀取excel時有讀不完狀況。
             $conf->setOption([
-                'a_id'
+                'u_no'
             ], 'requiredField');
+            $style = new \marshung\io\style\IoStyle();
+            // 欄位B凍結
+            $style->setFreeze('B');
+
+            $io->setStyle($style);
 
             // 匯出處理 - 建構匯出資料 - 手動處理
             $io->setData($data)->exportBuilder();
@@ -329,17 +499,48 @@ class Crud_account extends CI_Controller
     /**
      * 匯入資料
      */
-    function import()
+    public function importData()
     {
-        // IO物件建構
-        $io = new \marshung\io\IO();
-        // 匯入處理 - 取得匯入資料
-        $data = $io->import($builder = 'Excel', $fileArgu = 'fileupload');
-        // 取得匯入config名子
-        $configName = $io->getConfig()->getOption('configName');
+        try {
+            // IO物件建構
+            $io = new \marshung\io\IO();
+            // 匯入處理 - 取得匯入資料
+            $data = $io->import($builder = 'Excel', $fileArgu = 'fileupload');
+            // 預設抓取資料排序及排序欄位
+            $sort = ['sortType' => 'ASC', 'text' => 'a_id'];
+            // 抓取的資料
+            $dbData = $this->Crud_account_model->getAllAccount($sort);
+            // 取出所有的主鍵
+            $a_idArr = array_column($dbData, 'a_id');
 
-        echo 'Config Name = ' . $configName . "<br>\n";
-        echo 'Data = ';
-        var_export($data);
+            // 將Excel的資料提出做判斷
+            foreach ($data as $key => $row) {
+                // 預設性別轉換
+                $map = ['女生' => 'F', '男生' => 'M'];
+                // 性別轉換
+                $row['a_sex'] = $map[$row['a_sex']];
+                // 檢查資料格式
+                $this->checkData($row);
+                // 判斷是否有a_id與資料庫a_id相同
+                if (in_array($row['a_id'], $a_idArr)&&$row['a_id']!=='') {
+                    // 有則修改資料
+                    $res = $this->Crud_account_model->editAccount($row);
+                    print_r($res);
+                } else {
+                    // 無則新增帳號
+                    $res = $this->Crud_account_model->addAccount($row);
+                }
+                // 判斷是否有資料
+                if (!isset($res)) {
+                    // 拋出錯誤訊息
+                    throw new \Exception('主鍵:' . $row['a_id'] . '資料有誤', 400);
+                }
+            }
+            // 拋出資料完成訊息
+            throw new \Exception("資料匯入完成", 200);
+        } catch (\Exception $e) {
+            http_response_code($e->getCode());
+            echo $e->getMessage();
+        }
     }
 }
