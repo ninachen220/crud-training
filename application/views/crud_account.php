@@ -34,40 +34,20 @@ defined('BASEPATH') or exit('No direct script access allowed');
             </div>
         </div>
         <div class="row">
-            <div class="col-md-3 row" style="text-align: left;">
-                <div class="col-md-3" style="text-align: right;margin-top:10;"><span>顯示</span></div>
-                <div class="col-md-5">
-                    <select class="form-control" style="text-align: center;margin-top:5;" id="showData">
-                        <option value="5">5</option>
-                        <option value="10">10</option>
-                        <option value="15">15</option>
-                        <option value="20">20</option>
-                    </select>
-                </div>
-                <div class="col-md-4" style="margin-top:10;"><span>筆</span></div>
-
-            </div>
-            <div class="col-md-3 col-md-offset-3" style="text-align: right;  margin-top:4;">
+            <div class="col-md-3 col-md-offset-9" style="text-align: right;  margin-top:4;margin-bottom:8;">
                 <button class="btn btn-primary" type="button" id="oneByOneDelete">批次刪除</button>
             </div>
-            <div class="col-md-3" style="float: right; margin-top:4;">
-                <div class="input-group">
-                    <input type="text" class="form-control" id="searchPlace" placeholder="請輸入搜尋文字">
-                    <span class="input-group-btn"> <button class="btn btn-primary" type="button" id="search" style="padding: 9;"><i class="bi bi-search"></i></button></span>
-                </div>
-            </div>
-
         </div>
-        <table class="table table-striped table-bordered" id="accountTable" style="text-align: center;  margin-top:8;">
+        <table class="table table-striped table-bordered" id="accountTable" style="text-align: center;">
             <thead>
                 <tr>
                     <th scope="col"></th>
-                    <th scope="col" style="text-align: center;">帳號 <i class="bi bi-sort-down"></i></th>
-                    <th scope="col" style="text-align: center;">姓名 <i class="bi bi-filter-left"></i></th>
-                    <th scope="col" style="text-align: center;">性別 <i class="bi bi-filter-left"></i></th>
-                    <th scope="col" style="text-align: center;">生日 <i class="bi bi-filter-left"></i></th>
-                    <th scope="col" style="text-align: center;">信箱 <i class="bi bi-filter-left"></i></th>
-                    <th scope="col" style="text-align: center;">備註 <i class="bi bi-filter-left"></i></th>
+                    <th scope="col" style="text-align: center;">帳號</th>
+                    <th scope="col" style="text-align: center;">姓名</th>
+                    <th scope="col" style="text-align: center;">性別</th>
+                    <th scope="col" style="text-align: center;">生日</th>
+                    <th scope="col" style="text-align: center;">信箱</th>
+                    <th scope="col" style="text-align: center;">備註</th>
                     <th scope="col" style="text-align: center;">編輯</th>
                     <th scope="col" style="text-align: center;">刪除</th>
                 </tr>

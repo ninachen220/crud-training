@@ -41,10 +41,6 @@ class Crud_account_model extends CI_Model
      */
     public function getAllAccount($data)
     {
-        // 欄位名稱
-        $text = $data['text'];
-        // 排列方式
-        $sort = $data['sortType'];
         // 預設欄位
         $col = 'a_id,a_account,a_name,a_sex,a_birth,a_mail,a_note';
 
@@ -59,30 +55,12 @@ class Crud_account_model extends CI_Model
         $this->db->select($col)->from($this->table);
 
         // 如果有搜尋文字
-        if (isset($data['searchText'])) {
-
-            // 解密搜尋文字
-            $searchText = UrlDecode(UrlDecode($data['searchText']));
-
-            // 過濾可用欄位資料 並將搜尋文字放入$arr
-            foreach ($this->tableColumns as $row) {
-                if ($row !== 'a_id' || $row !== 'status') {
-                    $arr[$row] = $searchText;
-                }
-            }
-
-            // 寫入條件sql
-            $this->db->group_start()->or_like($arr)->group_end();
+        if (isset($data['id'])) {
+            $this->db->where('a_id', $data['id']);
         }
 
         // 寫入條件sql並回傳資料
-        $data = $this->db->where('status', '1')->order_by($text, $sort)->get()->result_array();
-
-        //整理資料成對應名稱
-        foreach ($data as $key => $row) {
-            $data[$key]['a_sex'] = $dataSexDefault[$data[$key]['a_sex']];
-        }
-
+        $data = $this->db->where('status', '1')->get()->result_array();
         return $data;
     }
 
@@ -157,7 +135,7 @@ class Crud_account_model extends CI_Model
     public function deleteSelectAccount($data)
     {
         // 將資料整理成批次要的樣式
-        foreach ($data['id'] as $key => $value) {
+        foreach ($data['a_id'] as $key => $value) {
             $res[] = array(
                 'a_id' => $value,
                 'status' => 0

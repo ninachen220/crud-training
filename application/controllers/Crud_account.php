@@ -60,6 +60,8 @@ class Crud_account extends CI_Controller
                     if (empty($id)) {
                         // 讀取全部資料
                         $result = $this->getAllAccount($_GET);
+                    } else {
+                        $result = $this->getSpesificAccount($id);
                     }
                     break;
                 case 'PATCH':
@@ -69,8 +71,7 @@ class Crud_account extends CI_Controller
                     break;
                 case 'DELETE':
                     if (empty($id)) {
-
-                        if (!empty($data['id'])) {
+                        if (!empty($data['a_id'])) {
                             //批次刪除
                             $result = $this->deleteSelectAccount($data);
                         } else {
@@ -115,6 +116,30 @@ class Crud_account extends CI_Controller
         $opt = [
             // 行為：載入全部
             'type' => '載入全部',
+            // 前端AJAX傳過來的資料
+            'data' => $data,
+        ];
+
+        // 回傳陣列資料
+        return $opt;
+    }
+
+    /**
+     * 獲取單筆資料
+     * 
+     * @param int $id
+     * @return array
+     */
+    public function getSpesificAccount($id)
+    {
+        $data['id'] = $id;
+        // 讀取全部資料
+        $data = $this->Crud_account_model->getAllAccount($data);
+
+        // 建立輸出陣列
+        $opt = [
+            // 行為：載入單筆
+            'type' => '載入單筆',
             // 前端AJAX傳過來的資料
             'data' => $data,
         ];
@@ -261,7 +286,7 @@ class Crud_account extends CI_Controller
                 $message = '請輸入正確的日期格式';
             }
             // 判斷欄位是否為空值
-            if ($key !== 'a_note'&& $key !=='a_id' && $value == '') {
+            if ($key !== 'a_note' && $key !== 'a_id' && $value == '') {
                 throw new Exception($default[$key] . '不能為空', $code);
             }
         }
@@ -466,11 +491,11 @@ class Crud_account extends CI_Controller
                 'gender' => array(
                     array(
                         'value' => 'M',
-                        'text' => '男'
+                        'text' => '男生'
                     ),
                     array(
                         'value' => 'F',
-                        'text' => '女'
+                        'text' => '女生'
                     )
                 )
             );
@@ -512,17 +537,12 @@ class Crud_account extends CI_Controller
             $dbData = $this->Crud_account_model->getAllAccount($sort);
             // 取出所有的主鍵
             $a_idArr = array_column($dbData, 'a_id');
-
             // 將Excel的資料提出做判斷
             foreach ($data as $key => $row) {
-                // 預設性別轉換
-                $map = ['女生' => 'F', '男生' => 'M'];
-                // 性別轉換
-                $row['a_sex'] = $map[$row['a_sex']];
                 // 檢查資料格式
                 $this->checkData($row);
                 // 判斷是否有a_id與資料庫a_id相同
-                if (in_array($row['a_id'], $a_idArr)&&$row['a_id']!=='') {
+                if (in_array($row['a_id'], $a_idArr) && $row['a_id'] !== '') {
                     // 有則修改資料
                     $res = $this->Crud_account_model->editAccount($row);
                     print_r($res);
