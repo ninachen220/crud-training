@@ -1,4 +1,7 @@
 <?php
+
+use function PHPSTORM_META\map;
+
 defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
@@ -112,16 +115,8 @@ class Crud_account extends CI_Controller
         // 讀取全部資料
         $data = $this->Crud_account_model->getAllAccount($data);
 
-        // 建立輸出陣列
-        $opt = [
-            // 行為：載入全部
-            'type' => '載入全部',
-            // 前端AJAX傳過來的資料
-            'data' => $data,
-        ];
-
         // 回傳陣列資料
-        return $opt;
+        return $data;
     }
 
     /**
@@ -294,12 +289,24 @@ class Crud_account extends CI_Controller
 
     /**
      * 輸出資料庫檔案
+     * 
+     * @param array $_POST
      */
     public function exportData()
     {
         try {
-            // 預設撈取檔案順序為主鍵正序
-            $sort = ['sortType' => 'ASC', 'text' => 'a_id'];
+            // 排序方式
+            $sortType = $_POST['order'];
+            // 顯示筆數
+            $length = $_POST['length'];
+            // 當前頁碼
+            $page = $_POST['page'];
+            // 設定排序欄位對照map
+            $map = [1 => 'a_account', 2 => 'a_name', 3 => 'a_sex', 4 => 'a_birth', 5 => 'a_mail', 6 => 'a_note'];
+            // 排序欄位
+            $text = $map[$_POST['text']];
+            // 撈取資料方式
+            $sort = ['sortType' => $sortType, 'text' => $text, 'length' => $length, 'page' => $page];
             // 撈取資料庫資料
             $data = $this->Crud_account_model->getAllAccount($sort);
             // 判斷是否有資料
@@ -462,7 +469,7 @@ class Crud_account extends CI_Controller
                     ),
                     'a_note' => array(
                         'key' => 'a_note',
-                        'value' => '備註1',
+                        'value' => '備註',
                         'col' => '2',
                         'row' => '1',
                         'style' => array(),
@@ -485,10 +492,9 @@ class Crud_account extends CI_Controller
             $conf = $io->getConfig()
                 ->setTitle($title1)
                 ->setContent($content);
-
-            // 建構外部對映表
+            // 建構外部對映表(下拉式選單)
             $listMap = array(
-                'gender' => array(
+                'a_sex' => array(
                     array(
                         'value' => 'M',
                         'text' => '男生'
@@ -505,13 +511,8 @@ class Crud_account extends CI_Controller
 
             // 必要欄位設定 - 提供讀取資料時驗証用 - 有設定，且必要欄位有無資料者，跳出 - 因各版本excel對空列定義不同，可能編輯過列，就會產生沒有結尾的空列，導致在讀取excel時有讀不完狀況。
             $conf->setOption([
-                'u_no'
+                'a_account'
             ], 'requiredField');
-            $style = new \marshung\io\style\IoStyle();
-            // 欄位B凍結
-            $style->setFreeze('B');
-
-            $io->setStyle($style);
 
             // 匯出處理 - 建構匯出資料 - 手動處理
             $io->setData($data)->exportBuilder();
@@ -529,15 +530,17 @@ class Crud_account extends CI_Controller
         try {
             // IO物件建構
             $io = new \marshung\io\IO();
+            
             // 匯入處理 - 取得匯入資料
             $data = $io->import($builder = 'Excel', $fileArgu = 'fileupload');
             // 預設抓取資料排序及排序欄位
-            $sort = ['sortType' => 'ASC', 'text' => 'a_id'];
+            $sort = ['sortType' => 'ASC', 'text' => 'a_id','col'=>'a_id'];
             // 抓取的資料
             $dbData = $this->Crud_account_model->getAllAccount($sort);
             // 取出所有的主鍵
             $a_idArr = array_column($dbData, 'a_id');
             // 將Excel的資料提出做判斷
+
             foreach ($data as $key => $row) {
                 // 檢查資料格式
                 $this->checkData($row);
@@ -545,7 +548,6 @@ class Crud_account extends CI_Controller
                 if (in_array($row['a_id'], $a_idArr) && $row['a_id'] !== '') {
                     // 有則修改資料
                     $res = $this->Crud_account_model->editAccount($row);
-                    print_r($res);
                 } else {
                     // 無則新增帳號
                     $res = $this->Crud_account_model->addAccount($row);

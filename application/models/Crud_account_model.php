@@ -39,28 +39,59 @@ class Crud_account_model extends CI_Model
      * @param array $data 排序方式及欄位、搜尋文字
      * @return array
      */
-    public function getAllAccount($data)
+    public function getAllAccount($pack)
     {
-        // 預設欄位
-        $col = 'a_id,a_account,a_name,a_sex,a_birth,a_mail,a_note';
-
-        // 預設性別名稱轉換
-        $dataSexDefault = [
-            '' => '未選擇',
-            'M' => '男生',
-            'F' => '女生'
-        ];
-
+        if (!isset($pack['col'])) {
+            // 預設欄位
+            $col = 'a_id,a_account,a_name,a_sex,a_birth,a_mail,a_note';
+            $this->db->where('status', '1');
+        } else {
+            $col = $pack['col'];
+        }
         // 寫入select sql
         $this->db->select($col)->from($this->table);
 
-        // 如果有搜尋文字
-        if (isset($data['id'])) {
-            $this->db->where('a_id', $data['id']);
+        // 判定是否有特定的id
+        if (isset($pack['id'])) {
+            $this->db->where('a_id', $pack['id']);
+        }
+        // 判定是否有顯示筆數
+        if (isset($pack['length'])) {
+            $length = $pack['length'];
+            if (isset($pack['start'])) {
+                $start = $pack['start'];
+                $text = $pack['order'][0]['column'];
+                $map = [0 => 'a_id', 1 => 'a_account', 2 => 'a_name', 3 => 'a_sex', 4 => 'a_birth', 5 => 'a_mail', 6 => 'a_note'];
+                $text = $map[$text];
+                $sortType = $pack['order'][0]['dir'];
+                $draw = $pack['draw'];
+            } else {
+                $page = $pack['page'];
+                $sortType = $pack['sortType'];
+                $text = $pack['text'];
+                // 設定起始撈取欄位
+                $start = $page * $length;
+            }
+
+            // 設定撈取筆數及開始欄位數
+            $this->db->limit($length, $start);
+            // 設定排序方式及欄位
+            $this->db->order_by($text, $sortType);
+        }
+        // 寫入條件sql並回傳資料
+        $data = $this->db->get()->result_array();
+        if (isset($pack['draw'])) {
+            $recordsTotal= count($data);
+            $recordsFiltered= count($data);
+            $data2 =$data;
+            $data = [];
+            $data['draw'] = $draw;
+            $data['data'] = $data2;
+            $data['recordsFiltered'] = $recordsFiltered;
+            $data['recordsTotal'] = $recordsTotal;            
         }
 
-        // 寫入條件sql並回傳資料
-        $data = $this->db->where('status', '1')->get()->result_array();
+
         return $data;
     }
 

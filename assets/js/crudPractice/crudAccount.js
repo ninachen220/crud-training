@@ -86,8 +86,162 @@
     var _construct = function() {
       console.log('_construct');
       _initialize();
-    };
 
+      $('#accountTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: {
+          url: self._ajaxUrls.accountApi,
+          method: 'GET',
+        },
+        // 設定顯示欄位為中文
+        language: {
+          processing: '處理中...',
+          loadingRecords: '載入中...',
+          lengthMenu: '顯示 _MENU_ 項結果',
+          zeroRecords: '沒有符合的結果',
+          info: '顯示第 _START_ 至 _END_ 項結果，共 _TOTAL_ 項',
+          infoEmpty: '顯示第 0 至 0 項結果，共 0 項',
+          infoFiltered: '(從 _MAX_ 項結果中過濾)',
+          infoPostFix: '',
+          search: '搜尋:',
+          paginate: {
+            first: '第一頁',
+            previous: '上一頁',
+            next: '下一頁',
+            last: '最後一頁',
+          },
+          aria: {
+            sortAscending: ': 升冪排列',
+            sortDescending: ': 降冪排列',
+          },
+          select: {
+            rows: {
+              _: '已選擇 %d 筆資料',
+              0: '',
+            },
+          },
+        },
+
+        // 預設全域按鈕事件
+        drawCallback: function() {
+          // 取得當前資料
+          var tableApi = this.api();
+          // 設定當前資料的內文
+          var $tbody = $(tableApi.table().body());
+          // 設定每個欄位的編輯按鈕事件
+          $tbody.find('.edit').on('click', function() {
+            // 找到當前元素開始的tr
+            var $tr = $(this).closest('tr');
+            // 找到當前的行
+            var row = tableApi.row($tr);
+            // 找到當前行的資料
+            var rowData = row.data();
+            // 解綁送出按鈕的事件
+            $('.account_button').unbind();
+
+            // 重新綁新的事件
+            $('.account_button').on('click', row, editAccout);
+
+            // 從後端撈取資料
+            var res = getSpesificAccount(rowData['a_id']);
+            $('#addAccount').modal('show');
+            $('#addAccountLabel').text('編輯帳號');
+            $('#accountId').val(res['a_account']);
+            $('#accountSeq').val(rowData['a_id']);
+            $('#accountName').val(res['a_name']);
+            $('#accountSex').val(res['a_sex']);
+            $('#accountBirth').val(res['a_birth']);
+            $('#accountMail').val(res['a_mail']);
+            $('#accountNote').val(res['a_note']);
+          });
+
+          // 設定刪除按鈕的事件
+          $tbody.find('.delete').on('click', function() {
+            // 找到當前元素開始的tr
+            var $tr = $(this).closest('tr');
+            // 找到當前的行
+            var row = tableApi.row($tr);
+            // 找到當前行的資料
+            var rowData = row.data();
+            // 刪除資料的id
+            var res = deleteAccout(rowData['a_id']);
+            // 判斷是否有id
+            if (res) {
+              // 呼叫datatable
+              var table = $('#accountTable').DataTable();
+              // 移除刪除的欄位
+              table.row($(this).parents('tr')).remove().draw();
+            }
+          });
+        },
+        // 設定選擇的checkbox
+        columnDefs: [
+          {
+            orderable: false,
+            className: 'select-checkbox',
+            targets: 0,
+          },
+        ],
+        // 選擇的細項設定
+        select: {
+          style: 'multi',
+          selector: 'td:first-child',
+        },
+        order: [[1, 'asc']],
+        // 設定資料來源
+        data: [],
+        // 放入對應table的資料欄位
+        columns: [
+          {
+            // 設定空欄位放checkbox
+            data: null,
+            render: function(data, type, full, meta) {
+              return null;
+            },
+          },
+          { data: 'a_account' },
+          { data: 'a_name' },
+          {
+            data: 'a_sex',
+            // 轉換性別為中文
+            render: function(data, type, full, meta) {
+              var sex = '男生';
+              // 判斷是否資料為F
+              if (data == 'F') {
+                sex = '女生';
+              }
+              return sex;
+            },
+          },
+          { data: 'a_birth' },
+          { data: 'a_mail' },
+          { data: 'a_note' },
+          {
+            data: null,
+            // 設定編輯按鈕
+            render: function(data, type, full, meta) {
+              var btn;
+              btn = $('<button>', {
+                class: 'btn btn-default bi bi-pencil edit',
+              }).prop('outerHTML');
+              return btn;
+            },
+          },
+          {
+            data: null,
+            // 設定刪除按鈕
+            render: function(data, type, full, meta) {
+              var btn;
+              btn = $('<button>', {
+                class: 'btn btn-default bi bi-trash3 delete',
+              }).prop('outerHTML');
+              return btn;
+            },
+          },
+        ],
+      });
+    };
     /**
      * 解構子
      */
@@ -154,7 +308,6 @@
               // 呼叫datatable
               var table = $('#accountTable').DataTable();
               table.destroy();
-              getAllAccount()
             })
             .fail(function(data) {
               // 顯示錯誤訊息
@@ -179,167 +332,6 @@
           ],
         });
       }
-    };
-
-    // 獲取所有資料庫資料
-    var getAllAccount = function() {
-      // 發送GET需求到Controller
-      $.ajax({
-        method: 'GET',
-        url: self._ajaxUrls.accountApi,
-        dataType: 'json',
-      }).done(function(data) {
-        // 取得資料物件
-        var data = data.data;
-        // 建立datatable
-        $('#accountTable').DataTable({
-          // 設定顯示欄位為中文
-          language: {
-            processing: '處理中...',
-            loadingRecords: '載入中...',
-            lengthMenu: '顯示 _MENU_ 項結果',
-            zeroRecords: '沒有符合的結果',
-            info: '顯示第 _START_ 至 _END_ 項結果，共 _TOTAL_ 項',
-            infoEmpty: '顯示第 0 至 0 項結果，共 0 項',
-            infoFiltered: '(從 _MAX_ 項結果中過濾)',
-            infoPostFix: '',
-            search: '搜尋:',
-            paginate: {
-              first: '第一頁',
-              previous: '上一頁',
-              next: '下一頁',
-              last: '最後一頁',
-            },
-            aria: {
-              sortAscending: ': 升冪排列',
-              sortDescending: ': 降冪排列',
-            },
-            select: {
-              rows: {
-                _: '已選擇 %d 筆資料',
-                0: '',
-              },
-            },
-          },
-          // 預設全域按鈕事件
-          drawCallback: function() {
-            // 取得當前資料
-            var tableApi = this.api();
-            // 設定當前資料的內文
-            var $tbody = $(tableApi.table().body());
-            // 設定每個欄位的編輯按鈕事件
-            $tbody.find('.edit').on('click', function() {
-              // 找到當前元素開始的tr
-              var $tr = $(this).closest('tr');
-              // 找到當前的行
-              var row = tableApi.row($tr);
-              // 找到當前行的資料
-              var rowData = row.data();
-              // 解綁送出按鈕的事件
-              $('.account_button').unbind();
-
-              // 重新綁新的事件
-              $('.account_button').on('click', row, editAccout);
-
-              // 從後端撈取資料
-              var res = getSpesificAccount(rowData['a_id']);
-              $('#addAccount').modal('show');
-              $('#addAccountLabel').text('編輯帳號');
-              $('#accountId').val(res['a_account']);
-              $('#accountSeq').val(rowData['a_id']);
-              $('#accountName').val(res['a_name']);
-              $('#accountSex').val(res['a_sex']);
-              $('#accountBirth').val(res['a_birth']);
-              $('#accountMail').val(res['a_mail']);
-              $('#accountNote').val(res['a_note']);
-            });
-
-            // 設定刪除按鈕的事件
-            $tbody.find('.delete').on('click', function() {
-              // 找到當前元素開始的tr
-              var $tr = $(this).closest('tr');
-              // 找到當前的行
-              var row = tableApi.row($tr);
-              // 找到當前行的資料
-              var rowData = row.data();
-              // 刪除資料的id
-              var res = deleteAccout(rowData['a_id']);
-              // 判斷是否有id
-              if (res) {
-                // 呼叫datatable
-                var table = $('#accountTable').DataTable();
-                // 移除刪除的欄位
-                table.row($(this).parents('tr')).remove().draw();
-              }
-            });
-          },
-          // 設定選擇的checkbox
-          columnDefs: [
-            {
-              orderable: false,
-              className: 'select-checkbox',
-              targets: 0,
-            },
-          ],
-          // 選擇的細項設定
-          select: {
-            style: 'multi',
-            selector: 'td:first-child',
-          },
-          order: [[1, 'asc']],
-          // 設定資料來源
-          data: data,
-          // 放入對應table的資料欄位
-          columns: [
-            {
-              // 設定空欄位放checkbox
-              data: null,
-              render: function(data, type, full, meta) {
-                return null;
-              },
-            },
-            { data: 'a_account' },
-            { data: 'a_name' },
-            {
-              data: 'a_sex',
-              // 轉換性別為中文
-              render: function(data, type, full, meta) {
-                var sex = '男生';
-                // 判斷是否資料為F
-                if (data == 'F') {
-                  sex = '女生';
-                }
-                return sex;
-              },
-            },
-            { data: 'a_birth' },
-            { data: 'a_mail' },
-            { data: 'a_note' },
-            {
-              data: null,
-              // 設定編輯按鈕
-              render: function(data, type, full, meta) {
-                var btn;
-                btn = $('<button>', {
-                  class: 'btn btn-default bi bi-pencil edit',
-                }).prop('outerHTML');
-                return btn;
-              },
-            },
-            {
-              data: null,
-              // 設定刪除按鈕
-              render: function(data, type, full, meta) {
-                var btn;
-                btn = $('<button>', {
-                  class: 'btn btn-default bi bi-trash3 delete',
-                }).prop('outerHTML');
-                return btn;
-              },
-            },
-          ],
-        });
-      });
     };
 
     // 獲取單筆資料
@@ -663,7 +655,7 @@
                     // 顯示回傳訊息
                     BootstrapDialog.show({
                       title: '訊息',
-                      message: data.type,
+                      message: data,
                       buttons: [
                         {
                           label: 'OK',
@@ -709,6 +701,15 @@
 
     // 匯出資料
     var exportData = function() {
+      var table = $('#accountTable').DataTable();
+      // 取得頁面資料
+      var info = table.page.info();
+      // 取得頁數
+      var page = info.page;
+      // 取得顯示資料筆數
+      var lengthMenu = info.length;
+      // 取得排序方式
+      var order = table.order()[0];
       // 二次確認
       BootstrapDialog.show({
         title: '確認訊息',
@@ -722,8 +723,46 @@
             action: function(dialogItself) {
               // 關閉訊息視窗
               dialogItself.close();
-              // 前往函式
-              window.open('Crud_account/exportData');
+              // 設定表格
+              var form = $('<form></form>');
+              // 設定表格送出方法及位置
+              form.attr({ method: 'POST', action: self._ajaxUrls.exportApi });
+              // 製造當前頁碼input
+              var page_input = $('<input>', {
+                type: 'text',
+                name: 'page',
+                value: page,
+              }).prop('outerHTML');
+              // 放入表格
+              form.append(page_input);
+              // 製造顯示筆數input
+              var lengthMenu_input = $('<input>', {
+                type: 'text',
+                name: 'length',
+                value: lengthMenu,
+              }).prop('outerHTML');
+              // 放入表格
+              form.append(lengthMenu_input);
+              // 製造排序方式input
+              var order_input = $('<input>', {
+                type: 'text',
+                name: 'order',
+                value: order[1],
+              }).prop('outerHTML');
+              // 放入表格
+              form.append(order_input);
+              // 製造排序欄位input
+              var text_input = $('<input>', {
+                type: 'text',
+                name: 'text',
+                value: order[0],
+              }).prop('outerHTML');
+              // 放入表格
+              form.append(text_input);
+              // 製造表單
+              $('html').append(form);
+              // 表單送出
+              form.submit();
             },
           },
           {
@@ -742,9 +781,6 @@
      */
     var _initialize = function() {
       console.log('_initialize');
-
-      // 獲取所有帳號
-      getAllAccount();
 
       // 取得file
       let importForm = document.forms.namedItem('importForm');
