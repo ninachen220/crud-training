@@ -45,6 +45,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
                     <th scope="col" style="text-align: center;">帳號</th>
                     <th scope="col" style="text-align: center;">姓名</th>
                     <th scope="col" style="text-align: center;">性別</th>
+                    <th scope="col" style="text-align: center;">部門</th>
                     <th scope="col" style="text-align: center;">生日</th>
                     <th scope="col" style="text-align: center;">信箱</th>
                     <th scope="col" style="text-align: center;">備註</th>

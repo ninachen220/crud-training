@@ -10,6 +10,7 @@ class Crud_account_model extends CI_Model
      * 資料表名稱
      */
     protected $table = "account_info";
+    protected $dept = "dept_info";
 
     /**
      * 欄位資料
@@ -43,7 +44,7 @@ class Crud_account_model extends CI_Model
     {
         if (!isset($pack['col'])) {
             // 預設欄位
-            $col = 'a_id,a_account,a_name,a_sex,a_birth,a_mail,a_note';
+            $col = 'a_id,a_account,a_name,a_sex,a_birth,a_mail,a_note,d_id';
             $this->db->where('status', '1');
         } else {
             $col = $pack['col'];
@@ -58,11 +59,14 @@ class Crud_account_model extends CI_Model
         // 判定是否有顯示筆數
         if (isset($pack['length'])) {
             $length = $pack['length'];
+            // 判定是否有起始抓取欄位
             if (isset($pack['start'])) {
                 $start = $pack['start'];
                 $text = $pack['order'][0]['column'];
                 $map = [0 => 'a_id', 1 => 'a_account', 2 => 'a_name', 3 => 'a_sex', 4 => 'a_birth', 5 => 'a_mail', 6 => 'a_note'];
+                // 排序欄位
                 $text = $map[$text];
+                // 設定排序方式
                 $sortType = $pack['order'][0]['dir'];
                 $draw = $pack['draw'];
             } else {
@@ -72,27 +76,62 @@ class Crud_account_model extends CI_Model
                 // 設定起始撈取欄位
                 $start = $page * $length;
             }
-
+            // 資料庫總資料筆數
+            $total = $this->db->count_all_results('', FALSE);
             // 設定撈取筆數及開始欄位數
             $this->db->limit($length, $start);
             // 設定排序方式及欄位
             $this->db->order_by($text, $sortType);
         }
-        // 寫入條件sql並回傳資料
-        $data = $this->db->get()->result_array();
-        if (isset($pack['draw'])) {
-            $recordsTotal= count($data);
-            $recordsFiltered= count($data);
-            $data2 =$data;
-            $data = [];
-            $data['draw'] = $draw;
-            $data['data'] = $data2;
-            $data['recordsFiltered'] = $recordsFiltered;
-            $data['recordsTotal'] = $recordsTotal;            
+        // 判定search是否有值
+        if (isset($pack['search']['value']) && !empty($pack['search']['value'])) {
+            $arr = [];
+            foreach ($this->tableColumns as $row) {
+                $arr[$row] = $pack['search']['value'];
+            }
+            $this->db->group_start()->or_like($arr)->group_end();
         }
+        // 寫入條件sql並回傳資料
+        $accountData = $this->db->get()->result_array();
+        // 判定是否有查詢到資料
+        if (!empty($accountData)) {
+            // 撈出所有的a_id
+            $deptIds = array_unique(array_column($accountData, 'd_id'));
+            // 設定搜尋欄位
+            $col = ['d_id', 'd_name'];
+            // 查詢有指定d_id部門名稱
+            $this->db->select($col)->from($this->dept);
+            $this->db->where_in('d_id', $deptIds);
+            $deptData = $this->db->get()->result_array();
 
-
-        return $data;
+            // 將部門id變成map陣列
+            $map = array_column($deptData, 'd_name', 'd_id');
+        }
+        $map[0] = '未選擇';
+        // 判定是否有前端丟過來的指定欄位
+        if (isset($pack['draw'])) {
+            // 設定指定參數
+            $recordsTotal = $total;
+            $recordsFiltered = $total;
+            // 將部門代碼換成中文名稱
+            foreach ($accountData as $key => $row) {
+                $id = $row['d_id'];
+                // 設定部門中文
+                $accountData[$key]['d_id'] = $map[$id];
+            }
+            // 暫存資料
+            $tmp = $accountData;
+            $accountData = [];
+            // 設定回傳參數
+            $accountData['draw'] = $draw;
+            // 設定回傳資料
+            $accountData['data'] = $tmp;
+            // 設定回傳資料總筆數
+            $accountData['recordsFiltered'] = $recordsFiltered;
+            // 設定回傳資料總筆數
+            $accountData['recordsTotal'] = $recordsTotal;
+        }
+        return $accountData;
     }
 
     /**

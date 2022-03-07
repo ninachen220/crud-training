@@ -75,7 +75,7 @@ $query_builder = TRUE;
 
 $db['default'] = array(
 	'dsn'	=> '',
-	'hostname' => 'db.rd1.dev.gcp',
+	'hostname' => 'db.rd1.local.gcp',
 	'username' => 'nina_chen',
 	'password' => 'rd_training',
 	'database' => 'nina_chen',
