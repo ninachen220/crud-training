@@ -26,10 +26,12 @@ class Crud_account extends CI_Controller
      */
     public function index()
     {
+        // 載入部門名稱
+        $data['dept'] = $this->Crud_account_model->getAllDept();
         // 載入header
         $this->load->view('bootstrapHeader');
-        // 載入view
-        $this->load->view('crud_account');
+        // 載入view以及data
+        $this->load->view('crud_account', $data);
     }
 
     /**
@@ -48,7 +50,6 @@ class Crud_account extends CI_Controller
 
         // 合併可使用的欄位
         $data = array_intersect_key($data, array_flip($this->Crud_account_model->tableColumns));
-
         // 預設結果arr
         $result = [];
 
@@ -127,9 +128,8 @@ class Crud_account extends CI_Controller
      */
     public function getSpesificAccount($id)
     {
-        $data['id'] = $id;
         // 讀取全部資料
-        $data = $this->Crud_account_model->getAllAccount($data);
+        $data = $this->Crud_account_model->getSpesificAccount($id);
 
         // 建立輸出陣列
         $opt = [
@@ -262,7 +262,8 @@ class Crud_account extends CI_Controller
         $default = [
             'a_name' => '姓名',
             'a_birth' => '生日',
-            'a_account' => '帳號'
+            'a_account' => '帳號',
+            'd_id' => '部門'
         ];
         // 錯誤代碼
         $code = 400;
@@ -296,15 +297,15 @@ class Crud_account extends CI_Controller
     {
         try {
             // 排序方式
-            $sortType = $_POST['order'];
+            $sortType = $_GET['order'];
             // 顯示筆數
-            $length = $_POST['length'];
+            $length = $_GET['length'];
             // 當前頁碼
-            $page = $_POST['page'];
+            $page = $_GET['page'];
             // 設定排序欄位對照map
             $map = [1 => 'a_account', 2 => 'a_name', 3 => 'a_sex', 4 => 'a_birth', 5 => 'a_mail', 6 => 'a_note'];
             // 排序欄位
-            $text = $map[$_POST['text']];
+            $text = $map[$_GET['text']];
             // 撈取資料方式
             $sort = ['sortType' => $sortType, 'text' => $text, 'length' => $length, 'page' => $page];
             // 撈取資料庫資料
@@ -365,10 +366,9 @@ class Crud_account extends CI_Controller
                         'class' => '',
                         'default' => '',
                         'list' => ''
-                    ),
-                    't5' => array(
+                    ), 't5' => array(
                         'key' => 't5',
-                        'value' => '生日',
+                        'value' => '部門',
                         'col' => '1',
                         'row' => '1',
                         'style' => array(),
@@ -378,8 +378,8 @@ class Crud_account extends CI_Controller
                     ),
                     't6' => array(
                         'key' => 't6',
-                        'value' => '信箱',
-                        'col' => '2',
+                        'value' => '生日',
+                        'col' => '1',
                         'row' => '1',
                         'style' => array(),
                         'class' => '',
@@ -388,6 +388,16 @@ class Crud_account extends CI_Controller
                     ),
                     't7' => array(
                         'key' => 't7',
+                        'value' => '信箱',
+                        'col' => '2',
+                        'row' => '1',
+                        'style' => array(),
+                        'class' => '',
+                        'default' => '',
+                        'list' => ''
+                    ),
+                    't8' => array(
+                        'key' => 't8',
                         'value' => '備註',
                         'col' => '2',
                         'row' => '1',
@@ -447,6 +457,16 @@ class Crud_account extends CI_Controller
                         'default' => '',
                         'list' => ''
                     ),
+                    'd_id' => array(
+                        'key' => 'd_id',
+                        'value' => '部門',
+                        'col' => '1',
+                        'row' => '1',
+                        'style' => array(),
+                        'class' => '',
+                        'default' => '',
+                        'list' => ''
+                    ),
                     'a_birth' => array(
                         'key' => 'a_birth',
                         'value' => '生日',
@@ -492,6 +512,14 @@ class Crud_account extends CI_Controller
             $conf = $io->getConfig()
                 ->setTitle($title1)
                 ->setContent($content);
+
+            // 獲取部門資料
+            $dept = $this->Crud_account_model->getAllDept();
+            // 變換key名稱與對應表相同
+            $key = array("value", "text");
+            foreach ($dept as $index => $row) {
+                $dept[$index] = array_combine($key, $row);
+            }
             // 建構外部對映表(下拉式選單)
             $listMap = array(
                 'a_sex' => array(
@@ -503,7 +531,8 @@ class Crud_account extends CI_Controller
                         'value' => 'F',
                         'text' => '女生'
                     )
-                )
+                ),
+                'd_id' => $dept
             );
 
             // 載入外部對映表
@@ -513,7 +542,6 @@ class Crud_account extends CI_Controller
             $conf->setOption([
                 'a_account'
             ], 'requiredField');
-
             // 匯出處理 - 建構匯出資料 - 手動處理
             $io->setData($data)->exportBuilder();
         } catch (\Exception $e) {
@@ -530,17 +558,15 @@ class Crud_account extends CI_Controller
         try {
             // IO物件建構
             $io = new \marshung\io\IO();
-            
             // 匯入處理 - 取得匯入資料
             $data = $io->import($builder = 'Excel', $fileArgu = 'fileupload');
             // 預設抓取資料排序及排序欄位
-            $sort = ['sortType' => 'ASC', 'text' => 'a_id','col'=>'a_id'];
+            $sort = ['sortType' => 'ASC', 'text' => 'a_id', 'col' => 'a_id',];
             // 抓取的資料
             $dbData = $this->Crud_account_model->getAllAccount($sort);
             // 取出所有的主鍵
             $a_idArr = array_column($dbData, 'a_id');
             // 將Excel的資料提出做判斷
-
             foreach ($data as $key => $row) {
                 // 檢查資料格式
                 $this->checkData($row);

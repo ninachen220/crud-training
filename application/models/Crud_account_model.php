@@ -23,6 +23,7 @@ class Crud_account_model extends CI_Model
         'a_birth',
         'a_mail',
         'a_note',
+        'd_id',
         'status'
     ];
 
@@ -52,10 +53,6 @@ class Crud_account_model extends CI_Model
         // 寫入select sql
         $this->db->select($col)->from($this->table);
 
-        // 判定是否有特定的id
-        if (isset($pack['id'])) {
-            $this->db->where('a_id', $pack['id']);
-        }
         // 判定是否有顯示筆數
         if (isset($pack['length'])) {
             $length = $pack['length'];
@@ -63,7 +60,8 @@ class Crud_account_model extends CI_Model
             if (isset($pack['start'])) {
                 $start = $pack['start'];
                 $text = $pack['order'][0]['column'];
-                $map = [0 => 'a_id', 1 => 'a_account', 2 => 'a_name', 3 => 'a_sex', 4 => 'a_birth', 5 => 'a_mail', 6 => 'a_note'];
+                // 預設排序欄位map
+                $map = [0 => 'a_id', 1 => 'a_account', 2 => 'a_name', 3 => 'a_sex', 4 => 'd_id', 5 => 'a_birth', 6 => 'a_mail', 7 => 'a_note'];
                 // 排序欄位
                 $text = $map[$text];
                 // 設定排序方式
@@ -97,15 +95,17 @@ class Crud_account_model extends CI_Model
         if (!empty($accountData)) {
             // 撈出所有的a_id
             $deptIds = array_unique(array_column($accountData, 'd_id'));
-            // 設定搜尋欄位
-            $col = ['d_id', 'd_name'];
-            // 查詢有指定d_id部門名稱
-            $this->db->select($col)->from($this->dept);
-            $this->db->where_in('d_id', $deptIds);
-            $deptData = $this->db->get()->result_array();
+            if (!empty($deptIds)) {
+                // 設定搜尋欄位
+                $col = ['d_id', 'd_name'];
+                // 查詢有指定d_id部門名稱
+                $this->db->select($col)->from($this->dept);
+                $this->db->where_in('d_id', $deptIds);
+                $deptData = $this->db->get()->result_array();
 
-            // 將部門id變成map陣列
-            $map = array_column($deptData, 'd_name', 'd_id');
+                // 將部門id變成map陣列
+                $map = array_column($deptData, 'd_name', 'd_id');
+            }
         }
         $map[0] = '未選擇';
         // 判定是否有前端丟過來的指定欄位
@@ -132,6 +132,24 @@ class Crud_account_model extends CI_Model
             $accountData['recordsTotal'] = $recordsTotal;
         }
         return $accountData;
+    }
+
+    /**
+     * 獲取單筆資料
+     * 
+     * @param array $id
+     * @return json
+     */
+    public function getSpesificAccount($id)
+    {
+        // 預設欄位
+        $col = 'a_id,a_account,a_name,a_sex,a_birth,a_mail,a_note,d_id';
+        $this->db->where('status', '1');
+        // 寫入select sql
+        $this->db->select($col)->from($this->table);
+        $this->db->where('a_id', $id);
+        // 回傳資料
+        return $this->db->get()->result_array();
     }
 
     /**
@@ -213,5 +231,20 @@ class Crud_account_model extends CI_Model
         }
         // 成功時回傳主鍵鍵值
         return $this->db->update_batch($this->table, $res, "a_id");
+    }
+
+    /**
+     * 搜尋部門名稱
+     * 
+     * @return array
+     */
+    public function getAllDept()
+    {
+        // 設定搜尋欄位
+        $col = ['d_id', 'd_name'];
+        // 查詢有指定d_id部門名稱
+        $this->db->select($col)->from($this->dept);
+        $deptData = $this->db->get()->result_array();
+        return $deptData;
     }
 }

@@ -97,6 +97,18 @@ defined('BASEPATH') or exit('No direct script access allowed');
                         </div>
                         <div class="col-md-12" style="margin-top: 5;">
                             <div class="input-group">
+                                <span class="input-group-addon" id="accountDeptName">部門<span style="color: red;">*</span></span>
+                                <select class="form-control" name="accountDept" id="accountDept">
+                                    <option value="" selected>請選擇部門</option>
+                                    <?php foreach ($dept as $row): ?>
+                                    <option value="<?php echo $row['d_id']?>"><?php echo $row['d_name']?></option>
+                                    <?php endforeach ?>
+
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-12" style="margin-top: 5;">
+                            <div class="input-group">
                                 <span class="input-group-addon" id="accountBirthName">生日<span style="color: red;">*</span></span>
                                 <input type="date" class="form-control" name="accountBirth" id="accountBirth">
                             </div>
