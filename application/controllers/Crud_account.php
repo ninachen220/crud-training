@@ -256,17 +256,21 @@ class Crud_account extends CI_Controller
      *
      * @param mixed $data 帳號資料
      */
-    public function checkData($data)
+    public function checkData($data, $id = null)
     {
         // 預設回傳文字
         $default = [
             'a_name' => '姓名',
             'a_birth' => '生日',
             'a_account' => '帳號',
+            'a_sex' => '性別',
+            'a_mail' =>'信箱',
             'd_id' => '部門'
         ];
         // 錯誤代碼
         $code = 400;
+        // 預設訊息
+        $message = "";
         // 判斷資料是否有符合格式
         foreach ($data as $key => $value) {
             // 判定是否為帳號
@@ -283,8 +287,16 @@ class Crud_account extends CI_Controller
             }
             // 判斷欄位是否為空值
             if ($key !== 'a_note' && $key !== 'a_id' && $value == '') {
-                throw new Exception($default[$key] . '不能為空', $code);
+                $message = $default[$key] . '不能為空';
             }
+        }
+        // 如果錯誤訊息不為空且$id有值傳進來
+        if (isset($id) && !empty($message)) {
+            $message = '第' . ($id + 1) . '筆資料' . $message;
+        }
+        // 拋出錯誤訊息
+        if (!empty($message)) {
+            throw new Exception($message, $code);
         }
     }
 
@@ -296,6 +308,11 @@ class Crud_account extends CI_Controller
     public function exportData()
     {
         try {
+            // 判定是否有獲取值
+            if (empty($_GET)) {
+                // 拋出錯誤訊息
+                throw new Exception("未獲取參數", 400);
+            }
             // 排序方式
             $sortType = $_GET['order'];
             // 顯示筆數
@@ -303,7 +320,7 @@ class Crud_account extends CI_Controller
             // 當前頁碼
             $page = $_GET['page'];
             // 設定排序欄位對照map
-            $map = [1 => 'a_account', 2 => 'a_name', 3 => 'a_sex', 4 => 'a_birth', 5 => 'a_mail', 6 => 'a_note'];
+            $map = [0 => 'a_id', 1 => 'a_account', 2 => 'a_name', 3 => 'a_sex', 4 => 'd_id', 5 => 'a_birth', 6 => 'a_mail', 7 => 'a_note'];
             // 排序欄位
             $text = $map[$_GET['text']];
             // 撈取資料方式
@@ -569,7 +586,7 @@ class Crud_account extends CI_Controller
             // 將Excel的資料提出做判斷
             foreach ($data as $key => $row) {
                 // 檢查資料格式
-                $this->checkData($row);
+                $this->checkData($row, $key);
                 // 判斷是否有a_id與資料庫a_id相同
                 if (in_array($row['a_id'], $a_idArr) && $row['a_id'] !== '') {
                     // 有則修改資料
@@ -579,7 +596,7 @@ class Crud_account extends CI_Controller
                     $res = $this->Crud_account_model->addAccount($row);
                 }
                 // 判斷是否有資料
-                if (!isset($res)) {
+                if (empty($res)) {
                     // 拋出錯誤訊息
                     throw new \Exception('主鍵:' . $row['a_id'] . '資料有誤', 400);
                 }

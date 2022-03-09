@@ -636,25 +636,12 @@
         if (!file) {
           throw new Error('尚未選擇資料', 400);
         }
-        // datatable
-        var table = $('#accountTable').DataTable();
-        // 取得頁面資料
-        var info = table.page.info();
-        // 取得顯示筆數
-        var length = info.length;
-        // 取得當前頁碼
-        var page = info.page;
-        // 取得排序方式
-        var order = table.order()[0];
-        
         // 建立一個新的 FormData 物件
         var formData = new FormData(form);
 
         // 將file加入formData裡
         formData.append('fileupload', file);
-        formData.append('order', order);
-        formData.append('page', page);
-        formData.append('length', length);
+
         // 二次確認是否匯入
         BootstrapDialog.show({
           title: '確認訊息',
@@ -691,7 +678,18 @@
                   })
                   .fail(function(data) {
                     // 顯示錯誤訊息
-                    $.rustaMsgBox({ content: data.responseText });
+                    BootstrapDialog.show({
+                      title: '訊息',
+                      message: data.responseText,
+                      buttons: [
+                        {
+                          label: 'OK',
+                          action: function(dialogItself) {
+                            dialogItself.close();
+                          },
+                        },
+                      ],
+                    });
                   });
               },
             },

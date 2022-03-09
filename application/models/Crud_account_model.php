@@ -91,7 +91,7 @@ class Crud_account_model extends CI_Model
         }
         // 寫入條件sql並回傳資料
         $accountData = $this->db->get()->result_array();
-        // 判定是否有查詢到資料
+        // 判定是否有查詢到搜尋資料
         if (!empty($accountData)) {
             // 撈出所有的a_id
             $deptIds = array_unique(array_column($accountData, 'd_id'));
@@ -167,7 +167,7 @@ class Crud_account_model extends CI_Model
         $res = $this->db->insert($this->table, $data);
 
         // 寫入成功時回傳寫入主鍵鍵值，失敗時回傳 0
-        return $res ? $this->db->insert_id() : 0;
+        return $res ? $this->db->insert_id() : null;
     }
 
     /**
@@ -178,16 +178,13 @@ class Crud_account_model extends CI_Model
      */
     public function editAccount($data)
     {
-        $res = 0;
-
         // 檢查有無主鍵
         if (isset($data['a_id'])) {
             // 取出主鍵值並移除$data中主鍵欄位
             $a_id = $data['a_id'];
             unset($data['a_id']);
-
             // 更新資料 - 成功時回傳主鍵鍵值，失敗時回傳 0
-            $res = $this->db->where('a_id', $a_id)->update($this->table, $data) ? $a_id : 0;
+            $res = $this->db->where('a_id', $a_id)->update($this->table, $data) ? $a_id : null;
         } else {
             // 報錯-沒有主鍵欄位
             throw new Exception('沒有主鍵欄位: a_id', 400);
