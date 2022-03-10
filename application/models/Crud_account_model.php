@@ -11,6 +11,7 @@ class Crud_account_model extends CI_Model
      */
     protected $table = "account_info";
     protected $dept = "dept_info";
+    protected $col = 'a_id,a_account,a_name,a_sex,a_birth,a_mail,a_note,d_id';
 
     /**
      * 欄位資料
@@ -45,7 +46,7 @@ class Crud_account_model extends CI_Model
     {
         if (!isset($pack['col'])) {
             // 預設欄位
-            $col = 'a_id,a_account,a_name,a_sex,a_birth,a_mail,a_note,d_id';
+            $col = $this->col;
             $this->db->where('status', '1');
         } else {
             $col = $pack['col'];
@@ -142,11 +143,9 @@ class Crud_account_model extends CI_Model
      */
     public function getSpesificAccount($id)
     {
-        // 預設欄位
-        $col = 'a_id,a_account,a_name,a_sex,a_birth,a_mail,a_note,d_id';
         $this->db->where('status', '1');
         // 寫入select sql
-        $this->db->select($col)->from($this->table);
+        $this->db->select($this->col)->from($this->table);
         $this->db->where('a_id', $id);
         // 回傳資料
         return $this->db->get()->result_array();
@@ -155,11 +154,21 @@ class Crud_account_model extends CI_Model
     /**
      * 新增帳號
      *
-     * @param array $data 帳號資料
+     * @param array $data 帳號資料 $key 第幾筆資料
      * @return int
      */
-    public function addAccount($data)
+    public function addAccount($data, $key = null)
     {
+        // 搜尋相同帳號
+        $this->db->select('a_account')->from($this->table);
+        $this->db->where('a_account', $data['a_account']);
+        $repeat = $this->db->get()->result_array();
+
+        // 判定帳號是否重複
+        if (!empty($repeat) && $repeat > 0) {
+            $keyNum = !empty($key) ? "第" . $key . "筆" : null;
+            throw new \Exception($keyNum . "帳號已重複，請重新確認", 404);
+        }
         // 設定狀態為存在
         $data['status'] = 1;
 
@@ -173,11 +182,22 @@ class Crud_account_model extends CI_Model
     /**
      * 更新資料 - 從主鍵
      *
-     * @param array $data 帳號資料
+     * @param array $data 帳號資料 $key 第幾筆資料
      * @return int
      */
-    public function editAccount($data)
+    public function editAccount($data, $key = null)
     {
+        // 搜尋相同帳號
+        $this->db->select('a_account')->from($this->table);
+        $this->db->where('a_account', $data['a_account']);
+        $this->db->where_not_in('a_id', $data['a_id']);
+        $repeat = $this->db->get()->result_array();
+
+        // 判定帳號是否重複
+        if (!empty($repeat) && $repeat > 0) {
+            $keyNum = !empty($key) ? "第" . $key . "筆" : null;
+            throw new \Exception($keyNum . "帳號已重複，請重新確認", 404);
+        }
         // 檢查有無主鍵
         if (isset($data['a_id'])) {
             // 取出主鍵值並移除$data中主鍵欄位

@@ -1,18 +1,3 @@
-/**
- * 說明：
- * <li>1. 頁面函式只會初始化一次
- * <li>2. 如果是多頁面組合時，可能被其他頁面呼叫，因此需使用namespane:Page，以方便外部呼叫或試調
- * 
- * 執行順序：
- * 1. 註冊$(document).ready()函式，但先不執行
- * 2. $(document).ready()之外的程式碼依序執行 - 建構變數、函式obj
- * 3. 執行$(document).ready()內註冊的函式
- * 4. 確定window.Page是否存在，不存在則初始化
- * 5. 執行obj()物件，並將結果存入window.Page[name]
- * 6. obj()回傳內容為 new obj.fn.init(options);
- * 7. 實例化obj.fn.init(options);並在最後執行函式 _construct(_options);
- */
-
 // IIFE 立即執行函式
 (function(window, document, $, undefined) {
   // 使用嚴格模式
@@ -30,10 +15,6 @@
   var version = '{version}';
   // Default options
   var defaults = {};
-
-  /**
-        * *************** Object Build ***************
-        */
 
   // Define a local copy of Object
   var obj = function(options) {
@@ -61,34 +42,33 @@
   };
 
   /**
-        * Javascript物件
-        */
+   * Javascript物件
+   */
   obj.fn.init = function(options) {
     /**
-          * *************** Object Argument Setting ***************
-          */
+     * *************** Object Argument Setting ***************
+     */
     var self = this;
     var _options = options || {};
     // Ajax Response - jqXHR(s)
     var _jqXHRs;
 
     /**
-          * *************** 屬性設定 ***************
-          */
-
-    /**
-          * *************** 物件必要函式 ***************
-          */
-
-    /**
-          * 建構子
-          */
+     * 建構子
+     */
     var _construct = function() {
       console.log('_construct');
       _initialize();
       myTable;
     };
 
+    var closeTitle = '關閉';
+    var checkOk = 'OK';
+    var checkCurrect = '確認';
+
+    /**
+     * 建立datatable
+     */
     var myTable = $('#accountTable').DataTable({
       processing: true,
       serverSide: true,
@@ -124,7 +104,6 @@
           },
         },
       },
-
       // 預設全域按鈕事件
       drawCallback: function() {
         // 取得當前資料
@@ -218,8 +197,8 @@
         { data: 'a_mail' },
         { data: 'a_note' },
         {
+          // 不排序
           orderable: false,
-          data: null,
           // 設定編輯按鈕
           render: function(data, type, full, meta) {
             var btn;
@@ -230,8 +209,8 @@
           },
         },
         {
+          // 不排序
           orderable: false,
-          data: null,
           // 設定刪除按鈕
           render: function(data, type, full, meta) {
             var btn;
@@ -282,23 +261,7 @@
             },
           })
             .done(function(data) {
-              // 用dialog顯示回傳的type
-              BootstrapDialog.show({
-                // 設定標題
-                title: '訊息',
-                // 設定內文
-                message: data.type,
-                // 設定按鈕
-                buttons: [
-                  {
-                    label: 'OK',
-                    action: function(dialogItself) {
-                      dialogItself.close();
-                    },
-                  },
-                ],
-              });
-
+              correctInfo(data.type);
               // 將modal欄位內的資料清除
               $('#addAccount').find('input,textarea').val('');
               $('#addAccount').find('select').val('');
@@ -314,22 +277,7 @@
             });
         }
       } catch (error) {
-        // 用dialog顯示錯誤訊息
-        BootstrapDialog.show({
-          // 設定標題
-          title: '錯誤訊息',
-          // 設定內文
-          message: error.message,
-          // 設定按鈕
-          buttons: [
-            {
-              label: 'OK',
-              action: function(dialogItself) {
-                dialogItself.close();
-              },
-            },
-          ],
-        });
+        wrongInfo(error.message);
       }
     };
 
@@ -361,7 +309,7 @@
         buttons: [
           // 確認送出
           {
-            label: '確認',
+            label: checkCurrect,
             // no title as it is optional
             cssClass: 'btn-primary',
             action: function(dialogItself) {
@@ -375,18 +323,7 @@
                 async: false,
               })
                 .done(function(data) {
-                  BootstrapDialog.show({
-                    title: '訊息',
-                    message: data.type,
-                    buttons: [
-                      {
-                        label: 'OK',
-                        action: function(dialogItself) {
-                          dialogItself.close();
-                        },
-                      },
-                    ],
-                  });
+                  correctInfo(data.type);
                   // 呼叫datatable
                   var table = $('#accountTable').DataTable();
                   // 重新整理datatable
@@ -400,7 +337,7 @@
           },
           // 不要送出並關閉
           {
-            label: '關閉',
+            label: closeTitle,
             action: function(dialogItself) {
               dialogItself.close();
             },
@@ -422,7 +359,7 @@
         buttons: [
           {
             //確認送出
-            label: '確認',
+            label: checkCurrect,
             cssClass: 'btn-primary',
             action: function(dialogItself) {
               // 關閉二次確認視窗
@@ -435,19 +372,7 @@
                 data: { a_id: id },
               })
                 .done(function(data) {
-                  BootstrapDialog.show({
-                    title: '訊息',
-                    message: data.type,
-                    buttons: [
-                      {
-                        label: 'OK',
-                        action: function(dialogItself) {
-                          // 關閉確認視窗
-                          dialogItself.close();
-                        },
-                      },
-                    ],
-                  });
+                  correctInfo(data.type);
                   var table = $('#accountTable').DataTable();
                   table.rows({ selected: true }).remove().draw();
                 })
@@ -459,7 +384,7 @@
           },
           {
             // 不要送出並關閉
-            label: '關閉',
+            label: closeTitle,
             action: function(dialogItself) {
               dialogItself.close();
             },
@@ -479,7 +404,7 @@
         buttons: [
           {
             // 確認送出
-            label: '確認',
+            label: checkCurrect,
             // no title as it is optional
             cssClass: 'btn-primary',
             action: function(dialogItself) {
@@ -515,19 +440,7 @@
                 })
                   .done(function(data) {
                     // 顯示回傳的type
-                    BootstrapDialog.show({
-                      title: '訊息',
-                      message: data.type,
-                      buttons: [
-                        {
-                          label: 'OK',
-                          action: function(dialogItself) {
-                            // 關閉視窗
-                            dialogItself.close();
-                          },
-                        },
-                      ],
-                    });
+                    correctInfo(data.type);
                     // 查詢更新後的資料
                     var res = getSpesificAccount(a_id);
                     // 隱藏modal
@@ -542,26 +455,13 @@
                     $.rustaMsgBox({ content: data.responseText });
                   });
               } catch (error) {
-                // 回傳錯誤訊息
-                BootstrapDialog.show({
-                  title: '錯誤訊息',
-                  message: error.message,
-                  buttons: [
-                    {
-                      label: 'OK',
-                      action: function(dialogItself) {
-                        // 關閉視窗
-                        dialogItself.close();
-                      },
-                    },
-                  ],
-                });
+                wrongInfo(error.message);
               }
             },
           },
           {
             // 不要送出並關閉
-            label: '關閉',
+            label: closeTitle,
             action: function(dialogItself) {
               dialogItself.close();
             },
@@ -625,6 +525,44 @@
       });
     };
 
+    // 回傳正確的資料狀態
+    var correctInfo = function(data) {
+      // 用dialog顯示回傳的type
+      BootstrapDialog.show({
+        // 設定標題
+        title: '訊息',
+        // 設定內文
+        message: data,
+        // 設定按鈕
+        buttons: [
+          {
+            label: checkOk,
+            action: function(dialogItself) {
+              dialogItself.close();
+            },
+          },
+        ],
+      });
+    };
+
+    // 顯示錯誤訊息
+    var wrongInfo = function(error) {
+      console.log(error);
+      BootstrapDialog.show({
+        title: '錯誤訊息',
+        message: error,
+        buttons: [
+          {
+            label: checkOk,
+            action: function(dialogItself) {
+              // 關閉訊息視窗
+              dialogItself.close();
+            },
+          },
+        ],
+      });
+    };
+
     // 匯入資料
     var importData = function(event, form) {
       try {
@@ -649,7 +587,7 @@
           buttons: [
             {
               // 確認並送出
-              label: '確認',
+              label: checkCurrect,
               cssClass: 'btn-primary',
               action: function(dialogItself) {
                 // 關閉確認視窗
@@ -663,39 +601,17 @@
                 })
                   .done(function(data) {
                     // 顯示回傳訊息
-                    BootstrapDialog.show({
-                      title: '訊息',
-                      message: data,
-                      buttons: [
-                        {
-                          label: 'OK',
-                          action: function(dialogItself) {
-                            dialogItself.close();
-                          },
-                        },
-                      ],
-                    });
+                    correctInfo(data.type);
                   })
                   .fail(function(data) {
                     // 顯示錯誤訊息
-                    BootstrapDialog.show({
-                      title: '訊息',
-                      message: data.responseText,
-                      buttons: [
-                        {
-                          label: 'OK',
-                          action: function(dialogItself) {
-                            dialogItself.close();
-                          },
-                        },
-                      ],
-                    });
+                    wrongInfo(data.responseText);
                   });
               },
             },
             {
               // 不要送出並關閉
-              label: '關閉',
+              label: closeTitle,
               action: function(dialogItself) {
                 dialogItself.close();
               },
@@ -703,20 +619,7 @@
           ],
         });
       } catch (error) {
-        // 顯示錯誤訊息
-        BootstrapDialog.show({
-          title: '錯誤訊息',
-          message: error.message,
-          buttons: [
-            {
-              label: 'OK',
-              action: function(dialogItself) {
-                // 關閉訊息視窗
-                dialogItself.close();
-              },
-            },
-          ],
-        });
+        wrongInfo(error.message);
       }
     };
 
@@ -731,6 +634,8 @@
       var page = info.page;
       // 取得排序方式
       var order = table.order()[0];
+      // 取得資料鍵值順序，並將資料用逗號相隔為字串
+      var ids = table.columns().dataSrc().join(',');
       window.open(
         self._ajaxUrls.exportApi +
           '?length=' +
@@ -740,7 +645,9 @@
           '&order=' +
           order[1] +
           '&text=' +
-          order[0]
+          order[0] +
+          '&ids=' +
+          ids
       );
     };
     /**
@@ -799,42 +706,6 @@
       });
     };
 
-    /**
-          * *************** 功能函式 ***************
-          */
-
-    /**
-          * *************** 事件函式 ***************
-          */
-
-    /**
-          * 事件 - 送出
-          */
-    var _submit = function(e) {
-      return this;
-    };
-
-    /**
-          * 事件 - 清除
-          */
-    var _clear = function(e) {
-      return this;
-    };
-
-    /**
-          * 事件 - 增加
-          */
-    var _add = function(e) {
-      return this;
-    };
-
-    /**
-          * *************** 私有函式 ***************
-          */
-
-    /**
-          * *************** Run Constructor ***************
-          */
     _construct();
   };
 
