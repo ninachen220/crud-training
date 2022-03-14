@@ -45,6 +45,12 @@ class Company_crud_model extends CI_Model
      */
     public function getAllCompany($pack)
     {
+        // 如果前端沒有帶此參數必定錯誤
+        if (!isset($pack['draw'])) {
+            // 拋出例外
+            throw new \Exception("未帶必須參數", 400);
+        }
+
         // 判斷是否有欄位
         if (!isset($pack['col'])) {
             // 預設欄位
@@ -106,6 +112,7 @@ class Company_crud_model extends CI_Model
 
         // 寫入條件sql並回傳資料
         $accountData = $this->db->get()->result_array();
+
         // 判定是否有查詢到搜尋資料
         if (!empty($accountData)) {
             // 撈出所有的a_id
@@ -123,29 +130,27 @@ class Company_crud_model extends CI_Model
             }
         }
         $map[0] = '未選擇';
-        
+
         // 判定是否有前端丟過來的指定欄位
-        if (isset($pack['draw'])) {
-            foreach ($accountData as $key => $row) {
-                $id = $row['t_id'];
-                // 設定類別中文
-                $accountData[$key]['t_id'] = $map[$id];
-            }
-            // 暫存資料
-            $tmp = $accountData;
-            // 預設回傳陣列
-            $accountData = [];
-            // 設定回傳參數
-            $accountData['draw'] = $draw;
-            // 設定回傳資料
-            $accountData['data'] = $tmp;
-            // 設定回傳資料總筆數
-            $accountData['recordsFiltered'] = $total;
-            // 設定回傳資料總筆數
-            $accountData['recordsTotal'] = $total;
+        foreach ($accountData as $key => $row) {
+            $id = $row['t_id'];
+            // 設定類別中文
+            $accountData[$key]['t_id'] = $map[$id];
         }
+
+        // 預設回傳陣列
+        $resault = [];
+        // 設定回傳參數
+        $resault['draw'] = $draw;
+        // 設定回傳資料
+        $resault['data'] = $accountData;
+        // 設定回傳資料總筆數
+        $resault['recordsFiltered'] = $total;
+        // 設定回傳資料總筆數
+        $resault['recordsTotal'] = $total;
+
         // 回傳資料
-        return $accountData;
+        return $resault;
     }
 
     /**
@@ -174,21 +179,9 @@ class Company_crud_model extends CI_Model
      */
     public function addCompany($data, $key = null)
     {
-        // 搜尋信箱
-        $this->db->select('email')->from($this->table);
-        // 搜尋相同信箱
-        $this->db->where('email', $data['email']);
-        // 搜尋尚未軟刪除的信箱
-        $this->db->where('rec_status', '1');
-        // 獲取結果
-        $repeat = $this->db->get()->result_array();
+        // 檢查信箱是否重複
+        $this->_cheackEmail($data['email'], $key);
 
-        // 判定信箱是否重複
-        if (!empty($repeat) && $repeat > 0) {
-            // 判定若有key則顯示第幾筆資料，無則不顯示
-            $keyNum = !empty($key) ? "第" . $key . "筆" : null;
-            throw new \Exception($keyNum . "信箱已重複，請重新確認", 404);
-        }
         // 設定狀態為1
         $data['rec_status'] = 1;
         // 設定創立時間
@@ -209,21 +202,9 @@ class Company_crud_model extends CI_Model
      */
     public function editCompany($data, $key = null)
     {
-        // 搜尋相同信箱
-        $this->db->select('email')->from($this->table);
-        // 搜尋相同信箱
-        $this->db->where('email', $data['email']);
-        // 搜尋尚未軟刪除的信箱
-        $this->db->where('rec_status', '1');
-        $this->db->where_not_in('id', $data['id']);
-        $repeat = $this->db->get()->result_array();
+        // 檢查信箱是否重複
+        $this->_cheackEmail($data['email'], $key, $data['id']);
 
-        // 判定信箱是否重複
-        if (!empty($repeat) && $repeat > 0) {
-            // 判定若有key則顯示第幾筆資料，無則不顯示
-            $keyNum = !empty($key) ? "第" . $key . "筆" : null;
-            throw new \Exception($keyNum . "信箱已重複，請重新確認", 404);
-        }
         // 檢查有無主鍵
         if (isset($data['id'])) {
             // 取出主鍵值並移除$data中主鍵欄位(不更新主鍵)
@@ -305,5 +286,38 @@ class Company_crud_model extends CI_Model
         $this->db->select($col)->from($this->typeTable);
         $typeData = $this->db->get()->result_array();
         return $typeData;
+    }
+
+    /**
+     * 檢查信箱是否重複
+     * 
+     * 若有多個邏輯判斷重複，推薦還是提出程式，少量則可不提出
+     *
+     * @param [type] $email
+     * @param [type] $key
+     * @param [type] $id
+     * @return void
+     */
+    private function _cheackEmail($email, $key, $id = null)
+    {
+        // 搜尋信箱
+        $this->db->select('email')->from($this->table);
+        // 搜尋相同信箱
+        $this->db->where('email', $email);
+        // 搜尋尚未軟刪除的信箱
+        $this->db->where('rec_status', '1');
+        // 搜尋更新時其他 id
+        if ($id) {
+            $this->db->where_not_in('id', $id);
+        }
+        // 獲取結果
+        $repeat = $this->db->get()->result_array();
+
+        // 判定信箱是否重複
+        if (!empty($repeat) && $repeat > 0) {
+            // 判定若有key則顯示第幾筆資料，無則不顯示
+            $keyNum = !empty($key) ? "第" . $key . "筆" : null;
+            throw new \Exception($keyNum . "信箱已重複，請重新確認", 404);
+        }
     }
 }

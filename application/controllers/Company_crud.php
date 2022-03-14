@@ -26,6 +26,7 @@ class Company_crud extends CI_Controller
      */
     public function index()
     {
+        //
         $data['type'] = $this->Company_crud_model->getAllType();
         // 載入view以及data
         $this->load->view('companyCrud', $data);
@@ -105,7 +106,7 @@ class Company_crud extends CI_Controller
      * @param array $data 公司資料
      * @return json
      */
-    public function _add($data)
+    private function _add($data)
     {
         // 新增一筆資料
         $result = $this->Company_crud_model->addCompany($data);
@@ -128,7 +129,7 @@ class Company_crud extends CI_Controller
      * @param array $data datatable參數
      * @return json
      */
-    public function _getAll($data)
+    private function _getAll($data)
     {
         // 查詢全部資料
         $opt = $this->Company_crud_model->getAllCompany($data);
@@ -142,7 +143,7 @@ class Company_crud extends CI_Controller
      * @param array $id 公司資料主鍵
      * @return json
      */
-    public function _getOne($id)
+    private function _getOne($id)
     {
         // 讀取單筆資料
         $result = $this->Company_crud_model->getSpesificCompany($id);
@@ -165,7 +166,7 @@ class Company_crud extends CI_Controller
      * @param array $data 公司資料
      * @return json
      */
-    public function _update($data)
+    private function _update($data)
     {
         // 更新一筆資料
         $result =  $this->Company_crud_model->editCompany($data);
@@ -187,7 +188,7 @@ class Company_crud extends CI_Controller
      * @param array $data 公司資料
      * @return json
      */
-    public function _deleteSelect($data)
+    private function _deleteSelect($data)
     {
         //批次刪除
         $result = $this->Company_crud_model->deleteSelectCompany($data);
@@ -216,7 +217,7 @@ class Company_crud extends CI_Controller
      * @param int $id 公司資料主鍵
      * @return json
      */
-    public function _delete($id)
+    private function _delete($id)
     {
         // 刪除一筆資料
         $result = $this->Company_crud_model->deleteCompany($id);
@@ -240,7 +241,9 @@ class Company_crud extends CI_Controller
 
     /**
      * 檢查格式
-     *
+     * 
+     * db 可加上 index email 等於 Unique
+     * 
      * @param mixed $data 公司資料
      */
     public function checkData($data, $id = null)
@@ -260,7 +263,8 @@ class Company_crud extends CI_Controller
         // 判斷資料是否有符合格式
         foreach ($data as $key => $value) {
             // 判定是否為公司名稱
-            if ($key == 'name' && preg_match('/^[0-9a-zA-Z]{11,}$/', $value)) {
+            // 如果有特殊符號超過11個 [0-9a-zA-Z]{11,}將不會作用
+            if ($key == 'name' && !preg_match('/^[0-9a-zA-Z]{0,10}$/', $value)) {
                 $message = '公司名稱長度不可超過10個字元';
             }
             // 判定是否為Email

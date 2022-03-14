@@ -10,9 +10,9 @@
   });
 
   // Class Name
-  var name = '{name}';
+  var name = 'company_info';
   // Version
-  var version = '{version}';
+  var version = '1';
   // Default options
   var defaults = {};
 
@@ -48,9 +48,6 @@
      * *************** Object Argument Setting ***************
      */
     var self = this;
-    var _options = options || {};
-    // Ajax Response - jqXHR(s)
-    var _jqXHRs;
 
     /**
      * 建構子
@@ -58,9 +55,11 @@
     var _construct = function() {
       console.log('_construct');
       _initialize();
+      // 
       myTable;
     };
 
+    // 
     var closeTitle = '關閉';
     var checkOk = 'OK';
     var checkCurrect = '確認';
@@ -70,8 +69,10 @@
      * 建立datatable
      */
     var myTable = $('#companyTable').DataTable({
+      // 
       processing: true,
       serverSide: true,
+      // 
       ajax: {
         url: self._ajaxUrls.companyApi,
         method: 'GET',
@@ -164,6 +165,7 @@
         { data: 'email' },
         {
           data: 'scale',
+          // 
           render: function(data, type, full, meta) {
             var text;
             switch (data) {
@@ -210,13 +212,7 @@
         },
       ],
     });
-    /**
-     * 解構子
-     */
-    var _destruct = function() {};
 
-    // 設定datatable
-    var setTable = function() {};
     // 新增公司資料
     var addCompany = function() {
       try {
@@ -231,6 +227,7 @@
         var scale = $('.modal-body').find('#companycScale').val();
         var type = $('.modal-body').find('#companyType').val();
         var remark = $('.modal-body').find('#companycRemark').val();
+        // 
         $.ajax({
           method: 'POST',
           url: self._ajaxUrls.companyApi,
@@ -464,7 +461,8 @@
           throw new Error(text + '不能為空', 404);
         }
         // 判斷公司名稱超過10個字元
-        if (name == 'companyName' && /^[0-9a-zA-Z]{11,}$/.test(value)) {
+        // 如果有特殊符號超過11個 [0-9a-zA-Z]{11,}將不會作用
+        if (name == 'companyName' && !/^[0-9a-zA-Z]{0,10}$/.test(value)) {
           throw new Error('公司名稱長度不可超過10個字元', 404);
         }
 
